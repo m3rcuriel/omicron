@@ -12,13 +12,14 @@ Source:         Adapted from recon-chess (https://pypi.org/project/reconchess/)
 import random
 import chess
 from player import Player
+import chess_agent
 
 
 # TODO: Rename this class to what you would like your bot to be named during the game.
 class MyAgent(Player):
 
     def __init__(self):
-        pass
+        self.impl = chess_agent.RandomAgent()
 
     def handle_game_start(self, color, board):
         """
@@ -28,8 +29,7 @@ class MyAgent(Player):
         :param board: chess.Board -- initial board state
         :return:
         """
-        # TODO: implement this method
-        pass
+        self.impl.handle_game_start(color, board)
 
     def handle_opponent_move_result(self, captured_piece, captured_square):
         """
@@ -38,7 +38,7 @@ class MyAgent(Player):
         :param captured_piece: bool - true if your opponents captured your piece with their last move
         :param captured_square: chess.Square - position where your piece was captured
         """
-        pass
+        self.impl.handle_opponent_move_result(captured_piece, captured_square)
 
     def choose_sense(self, possible_sense, possible_moves, seconds_left):
         """
@@ -51,8 +51,7 @@ class MyAgent(Player):
         :return: chess.SQUARE -- the center of 3x3 section of the board you want to sense
         :example: choice = chess.A1
         """
-        # TODO: update this method
-        return random.choice(possible_sense)
+        return self.impl.choose_sense(possible_sense, possible_moves, seconds_left)
 
     def handle_sense_result(self, sense_result):
         """
@@ -68,9 +67,7 @@ class MyAgent(Player):
             (A6, None), (B6, None), (C8, None)
         ]
         """
-        # TODO: implement this method
-        # Hint: until this method is implemented, any senses you make will be lost.
-        pass
+        self.impl.handle_sense_result(sense_result)
 
     def choose_move(self, possible_moves, seconds_left):
         """
@@ -85,9 +82,7 @@ class MyAgent(Player):
         :condition: If you intend to move a pawn for promotion other than Queen, please specify the promotion parameter
         :example: choice = chess.Move(chess.G7, chess.G8, promotion=chess.KNIGHT) *default is Queen
         """
-        # TODO: update this method
-        choice = random.choice(possible_moves)
-        return choice
+        return self.impl.choose_move(possible_moves, seconds_left)
 
     def handle_move_result(self, requested_move, taken_move, reason, captured_piece, captured_square):
         """
@@ -100,8 +95,12 @@ class MyAgent(Player):
         :param captured_piece: bool - true if you captured your opponents piece
         :param captured_square: chess.Square - position where you captured the piece
         """
-        # TODO: implement this method
-        pass
+        self.impl.handle_move_result(
+            requested_move,
+            taken_move,
+            reason,
+            captured_piece,
+            captured_square)
 
     def handle_game_end(self, winner_color, win_reason):  # possible GameHistory object...
         """
@@ -110,5 +109,4 @@ class MyAgent(Player):
         :param winner_color: Chess.BLACK/chess.WHITE -- the winning color
         :param win_reason: String -- the reason for the game ending
         """
-        # TODO: implement this method
-        pass
+        self.impl.handle_game_end(winner_color, win_reason)
