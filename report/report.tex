@@ -1,0 +1,72 @@
+\documentclass{IEEEtran}
+
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+
+\begin{document}
+\begin{titlepage}
+    \centering
+    {\scshape\Huge Omicron \par \vspace{1cm}
+    }
+    {\Large Deep Learning Monte-Carlo Tree Search Chess Engine\par}
+    {\vfill}
+    {\LARGE Authors: Lee Mracek \& Kyle Stachowicz}
+\end{titlepage}
+\begin{abstract}
+    This paper outlines our novel approach to the problem of recon blind chess,
+    a variation of chess in which both players can only see the board through
+    brief observations in a three by three square.
+    %TODO add a bunch of crap here once we're done
+\end{abstract}
+\section{Motivation}
+Recon Blind Chess provides a unique problem of partial observability as well as
+a brute force environment. As interest continues to grow for reinforcement
+learning facing top pros in Go and other fully-observable games, it becomes more
+and more reasonable to attempt to adapt these approaches to the problem of
+partially-observable games. Recon blind chess provides an excellent playing
+field as near-unlimited training data can be generated via the use of actual
+chess engines. Additionally, chess is well understood when fully observable and
+has numerous solvers that can be drawn on for inspiration. The state space is
+large enough to prohibit na\"ive approaches while also requiring some thought
+put into computational resource.
+\section{Prior Work}
+%TODO the paper with the dumb analysis that didn't help
+
+AlphaStar, a reinforcement-based agent for StarCraft II attempted to tackle the
+problem of a partially observable world where the agent must scout to get
+information.
+
+\section{Problem Development}
+\subsection{Necessary Components}
+The initial thought process for the project proceeded along lines which would
+cover the three necessary outputs for the agent:
+\begin{description}
+    \item[Movement:] \hfill \\
+        The movement decision we wish to make. This is the
+        output that "plays" chess.
+    \item[Observer:] \hfill \\
+        The observer determines which observation to make and produces a joint
+        distribution over possible board states based on a history of
+        observations.
+    \item[Timer:] \hfill \\
+        The timer is responsible for determining how far forwards we will
+        progress in search trees or iteratively improving algorithms.
+\end{description}
+
+Each component of the system must perform well separately as well as in concert
+with the others. For example, the observer must be able to provide a decent
+estimate of the board state even when the movement actor is not enabled. The
+movement actor too should know how to play chess when provided with perfect
+observation but also incorporate uncertainty into its play when the board is
+obscured.
+
+Even though the components must operate separately, there are also couplings
+that cannot be ignored without sacrificing performance. The observer cannot
+provide the most relevant information without an understanding of where the most
+relevant areas of the board are. The timer cannot produce good estimates of how
+long to spend without understanding the current state of the game. All of these
+pieces and more provide motivation for a system that while valid individually is
+strongly coupled during a training procedure.
+
+\subsection{Memory and Compute Constraints}
+\end{document}
