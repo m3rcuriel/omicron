@@ -6,6 +6,11 @@ namespace chess {
 
 namespace test {
 
+TEST(Chess, ReprSizes) {
+    EXPECT_EQ(sizeof(Piece), 1);
+    EXPECT_LT(sizeof(Board), 80);
+}
+
 TEST(Chess, InitialBoard) {
     chess::Board board = chess::Board::initial_board();
 
@@ -25,14 +30,11 @@ TEST(Chess, InitialBoard) {
     }
 }
 
-void expect_moves(Board board, Color turn, std::vector<std::pair<Position, Position>> expected_moves) {
-    auto moves = board.generate_moves(chess::Color::WHITE);
+void expect_moves(
+        Board board, Color turn,
+        std::vector<std::pair<Position, Position>> expected_moves) {
+    auto moves = board.generate_moves(turn);
     EXPECT_EQ(expected_moves.size(), moves.size());
-#if 0
-    for (auto m : moves) {
-        std::cout << (int) m.from.rank << ", " << (int) m.from.file << " -> " << (int) m.to.rank << ", " << (int) m.to.file << std::endl;
-    }
-#endif
     for (auto e : expected_moves) {
         EXPECT_TRUE(
                 std::find_if(
@@ -44,7 +46,7 @@ void expect_moves(Board board, Color turn, std::vector<std::pair<Position, Posit
     }
 }
 
-TEST(CHESS, BasicPawnMoves) {
+TEST(Chess, BasicPawnMoves) {
     chess::Board board;
     board.set_piece(1, 0, chess::Piece{chess::Color::WHITE, chess::PieceType::PAWN});
     board.set_piece(3, 1, chess::Piece{chess::Color::WHITE, chess::PieceType::PAWN});
@@ -59,7 +61,7 @@ TEST(CHESS, BasicPawnMoves) {
     );
 }
 
-TEST(CHESS, PawnCapture) {
+TEST(Chess, PawnCapture) {
     chess::Board board;
     // Capture in each direction
     board.set_piece(3, 1, chess::Piece{chess::Color::WHITE, chess::PieceType::PAWN});
@@ -85,7 +87,7 @@ TEST(CHESS, PawnCapture) {
     );
 }
 
-TEST(CHESS, QueenMoves) {
+TEST(Chess, QueenMoves) {
     chess::Board board;
     /*   0 1 2 3 4 5 6 7
      * 7|
@@ -126,7 +128,7 @@ TEST(CHESS, QueenMoves) {
     );
 }
 
-TEST(CHESS, KingMoves) {
+TEST(Chess, KingMoves) {
     chess::Board board;
     /*   0 1 2 3 4 5 6 7
      * 7|. .
@@ -164,7 +166,7 @@ TEST(CHESS, KingMoves) {
     );
 }
 
-TEST(CHESS, BishopMoves) {
+TEST(Chess, BishopMoves) {
     chess::Board board;
     /*   0 1 2 3 4 5 6 7
      * 7|
@@ -196,7 +198,7 @@ TEST(CHESS, BishopMoves) {
     );
 }
 
-TEST(CHESS, KnightMoves) {
+TEST(Chess, KnightMoves) {
     chess::Board board;
     /*   0 1 2 3 4 5 6 7
      * 7|
@@ -225,7 +227,7 @@ TEST(CHESS, KnightMoves) {
     );
 }
 
-TEST(CHESS, Castling) {
+TEST(Chess, Castling) {
     Board board = Board::initial_board();
 
     /*   0 1 2 3 4 5 6 7
@@ -301,6 +303,7 @@ TEST(CHESS, Castling) {
                         return m.piece.type != PieceType::KING;
                     }
                 ), king_moves.end());
+        EXPECT_FALSE(board_copy.can_castle_kingside);
         EXPECT_EQ(king_moves.size(), 1);
     }
     {
@@ -338,6 +341,60 @@ TEST(CHESS, Castling) {
                 ), king_moves.end());
         EXPECT_EQ(king_moves.size(), 1);
     }
+}
+
+TEST(Chess, BasicMove) {
+    chess::Board board;
+    board.set_piece(3, 3, Piece{Color::WHITE, PieceType::QUEEN});
+    board.apply_move(Move{Piece{Color::WHITE, PieceType::QUEEN}, {3, 3}, {1, 1}});
+    EXPECT_EQ(board.get_piece(3, 3).color, Color::EMPTY);
+    EXPECT_EQ(board.get_piece(3, 3).type, PieceType::EMPTY);
+    EXPECT_EQ(board.get_piece(1, 1).color, Color::WHITE);
+    EXPECT_EQ(board.get_piece(1, 1).type, PieceType::QUEEN);
+}
+
+TEST(Chess, BlockedMoveOpponent) {
+    chess::Board board;
+    board.set_piece(4, 4, Piece{Color::WHITE, PieceType::QUEEN});
+    board.set_piece(2, 2, Piece{Color::BLACK, PieceType::QUEEN});
+    board.apply_move(Move{Piece{Color::WHITE, PieceType::QUEEN}, {4, 4}, {1, 1}});
+    EXPECT_EQ(board.get_piece(1, 1).color, Color::EMPTY);
+    EXPECT_EQ(board.get_piece(1, 1).type, PieceType::EMPTY);
+    EXPECT_EQ(board.get_piece(2, 2).color, Color::WHITE);
+    EXPECT_EQ(board.get_piece(2, 2).type, PieceType::QUEEN);
+}
+
+TEST(Chess, BlockedMoveSelf) {
+    chess::Board board;
+    board.set_piece(4, 4, Piece{Color::WHITE, PieceType::QUEEN});
+    board.set_piece(2, 2, Piece{Color::WHITE, PieceType::QUEEN});
+    board.apply_move(Move{Piece{Color::WHITE, PieceType::QUEEN}, {4, 4}, {1, 1}});
+    EXPECT_EQ(board.get_piece(2, 2).color, Color::WHITE);
+    EXPECT_EQ(board.get_piece(2, 2).type, PieceType::QUEEN);
+    EXPECT_EQ(board.get_piece(3, 3).color, Color::WHITE);
+    EXPECT_EQ(board.get_piece(3, 3).type, PieceType::QUEEN);
+}
+
+TEST(Chess, PawnWasteMove) {
+    chess::Board board = Board::initial_board();
+    board.set_piece(3, 0, Piece{Color::WHITE, PieceType::PAWN});
+    board.apply_move(Move{Piece{Color::WHITE, PieceType::PAWN}, {1, 0}, {2, 1}});
+    EXPECT_EQ(board.get_piece(1, 0).color, Color::WHITE);
+    EXPECT_EQ(board.get_piece(1, 0).type, PieceType::PAWN);
+    EXPECT_EQ(board.get_piece(2, 1).color, Color::EMPTY);
+    EXPECT_EQ(board.get_piece(2, 1).type, PieceType::EMPTY);
+}
+
+TEST(Chess, PawnBlocked) {
+    chess::Board board = Board::initial_board();
+    board.set_piece(3, 0, Piece{Color::BLACK, PieceType::PAWN});
+    board.apply_move(Move{Piece{Color::WHITE, PieceType::PAWN}, {1, 0}, {3, 0}});
+    EXPECT_EQ(board.get_piece(1, 0).color, Color::EMPTY);
+    EXPECT_EQ(board.get_piece(1, 0).type, PieceType::EMPTY);
+    EXPECT_EQ(board.get_piece(2, 0).color, Color::WHITE);
+    EXPECT_EQ(board.get_piece(2, 0).type, PieceType::PAWN);
+    EXPECT_EQ(board.get_piece(3, 0).color, Color::BLACK);
+    EXPECT_EQ(board.get_piece(3, 0).type, PieceType::PAWN);
 }
 
 TEST(Chess, EnPassant) {

@@ -1,7 +1,22 @@
 #include "chess.h"
 #include <iostream>
+#include <cassert>
 
 namespace chess {
+
+Piece Piece::EMPTY{Color::EMPTY, PieceType::EMPTY};
+
+int three_way_compare(int a, int b) {
+    return a > b ? 1 : (b > a ? -1 : 0);
+}
+
+int mirrored_rank(Color color, int rank) {
+    if (color == Color::WHITE) {
+        return rank;
+    } else {
+        return 7 - rank;
+    }
+}
 
 Board::Board() {
     for (std::array<Piece, 8>& row : board) {
@@ -98,67 +113,165 @@ void Board::debug_print(std::ostream& out) const {
 
 Piece Board::apply_move(Move move) {
     // TODO(Kyle): Check for error
-
     // Check for castling
-    if (move.piece.type == PieceType::KING &&
-            abs(move.from.file - move.to.file) > 1) {
+    switch (move.piece.type) {
+        case PieceType::KING:
+            return apply_move_king(move);
+        case PieceType::QUEEN:
+            return apply_move_queen(move);
+        case PieceType::ROOK:
+            return apply_move_rook(move);
+        case PieceType::BISHOP:
+            return apply_move_bishop(move);
+        case PieceType::PAWN:
+            return apply_move_pawn(move);
+        case PieceType::KNIGHT:
+            return apply_move_knight(move);
+        default:
+            assert(false);
+            return Piece::EMPTY;
+    }
+}
+
+Piece Board::apply_move_pawn(Move move) {
+    Color color = move.piece.color;
+    int mirrored_from_rank = mirrored_rank(color, move.from.rank),
+        mirrored_to_rank = mirrored_rank(color, move.to.rank);
+    if (move.from.file == move.to.file) {
+        assert(mirrored_to_rank == mirrored_from_rank + 1
+                || mirrored_to_rank == mirrored_from_rank + 2);
+        assert(mirrored_from_rank == 1);
+        apply_move_linear(move.from, move.to, false);
+        if (mirrored_to_rank == mirrored_from_rank + 2) {
+            en_passant_target = {
+                mirrored_rank(color, mirrored_from_rank + 1),
+                move.from.file
+            };
+        }
+        return Piece::EMPTY;
+    } else {
+        assert(abs(move.to.file - move.from.file) == 1);
+        assert(mirrored_to_rank == mirrored_from_rank + 1);
+        if (occupation(move.to.rank, move.to.file) == opponent(color)) {
+            // Regular capture
+            return move_piece(move.from, move.to);
+        } else if (en_passant_target.rank >= 0) {
+            // En passant
+            assert(occupation(move.to.rank, move.to.file) != color);
+            assert(move.to.file == en_passant_target.file);
+            assert(mirrored_to_rank == mirrored_rank(color, en_passant_target.rank));
+            int captured_target_rank = mirrored_rank(color, mirrored_to_rank - 1);
+            int captured_target_file = en_passant_target.file;
+            Piece captured = move_piece(move.from, move.to);
+            assert(captured == Piece::EMPTY);
+            std::swap(board[captured_target_rank][captured_target_file], captured);
+            return captured;
+        } else {
+            // Wasted move
+            return Piece::EMPTY;
+        }
+    }
+}
+
+Piece Board::apply_move_queen(Move move) {
+    return apply_move_linear(move.from, move.to, true);
+}
+
+Piece Board::apply_move_king(Move move) {
+    Color color = move.piece.color;
+    int mirrored_from_rank = mirrored_rank(color, move.from.rank),
+        mirrored_to_rank = mirrored_rank(color, move.to.rank);
+    if (abs(move.from.file - move.to.file) > 1) {
+        assert(mirrored_from_rank == mirrored_to_rank);
+        assert(mirrored_from_rank == 0);
+        assert(move.from.file == 4);
         if (move.from.file < move.to.file) {
             // Kingside
-            board[move.from.rank][6] = board[move.from.rank][4];
-            board[move.from.rank][5] = board[move.from.rank][7];
-            board[move.from.rank][4] = Piece{Color::EMPTY, PieceType::EMPTY};
-            board[move.from.rank][7] = Piece{Color::EMPTY, PieceType::EMPTY};
+            assert(can_castle_kingside);
+            if (occupation(move.from.rank, 6) != Color::EMPTY
+                    || occupation(move.from.rank, 5) != Color::EMPTY) {
+                // TODO(Kyle): Does this actualy revoke future castling ability?
+                can_castle_kingside = can_castle_queenside = false;
+                return Piece::EMPTY;
+            }
+            move_piece(move.from, move.to);
+            move_piece({move.from.rank, 7}, {move.to.rank, 5});
         } else {
             // Queenside
-            board[move.from.rank][2] = board[move.from.rank][4];
-            board[move.from.rank][3] = board[move.from.rank][0];
-            board[move.from.rank][0] = Piece{Color::EMPTY, PieceType::EMPTY};
-            board[move.from.rank][4] = Piece{Color::EMPTY, PieceType::EMPTY};
+            assert(can_castle_queenside);
+            if (occupation(move.from.rank, 1) != Color::EMPTY
+                    || occupation(move.from.rank, 2) != Color::EMPTY
+                    || occupation(move.from.rank, 3) != Color::EMPTY) {
+                // TODO(Kyle): Does this actualy revoke future castling ability?
+                can_castle_kingside = can_castle_queenside = false;
+                return Piece::EMPTY;
+            }
+            move_piece(move.from, move.to);
+            move_piece({move.from.rank, 0}, {move.to.rank, 3});
         }
-        return Piece{Color::EMPTY, PieceType::EMPTY};
-    }
-
-    if (move.piece.type == PieceType::KING) {
         can_castle_kingside = can_castle_queenside = false;
-    }
-
-    if (move.piece.type == PieceType::ROOK) {
-        if (move.from.file == 0) {
-            can_castle_queenside = false;
-        } else if (move.from.file == 7) {
-            can_castle_kingside = false;
-        }
-    }
-
-    // En passant
-    if (move.piece.type == PieceType::PAWN
-            && board[move.to.rank][move.to.file].color == Color::EMPTY
-            && abs(move.from.rank - move.to.rank) == 1
-            && abs(move.from.rank - move.to.rank) == 1) {
-        Position cpos {move.from.rank, en_passant_target.file};
-        Piece captured = board[cpos.rank][cpos.file];
-        board[cpos.rank][cpos.file]
-            = Piece{Color::EMPTY, PieceType::EMPTY};
-        board[move.to.rank][move.to.file] = board[move.from.rank][move.from.file];
-        board[move.from.rank][move.from.file] = Piece{Color::EMPTY, PieceType::EMPTY};
-        return captured;
-    }
-
-    // En passant target
-    if (move.piece.type == PieceType::PAWN
-            && ((move.piece.color == Color::BLACK && move.from.rank == 6)
-                || (move.piece.color == Color::WHITE && move.from.rank == 1))
-            && abs(move.from.rank - move.to.rank) == 2) {
-        en_passant_target.rank = (move.from.rank + move.to.rank) / 2;
-        en_passant_target.file = move.from.file;
+        return Piece::EMPTY;
     } else {
-        en_passant_target = {-1, -1};
+        assert(std::max(
+                    abs(move.to.rank - move.from.rank),
+                    abs(move.to.file - move.from.file)) == 1);
+        assert(occupation(move.to.rank, move.to.file) != color);
+        can_castle_kingside = can_castle_queenside = false;
+        return move_piece(move.from, move.to);
     }
+}
 
-    // TODO(Kyle): Promotions
-    Piece captured = board[move.to.rank][move.to.file];
-    board[move.to.rank][move.to.file] = board[move.from.rank][move.from.file];
-    board[move.from.rank][move.from.file] = Piece{Color::EMPTY, PieceType::EMPTY};
+Piece Board::apply_move_rook(Move move) {
+    assert((move.to.rank - move.from.rank) == 0 || (move.to.file - move.from.file) == 0);
+    int mirrored_from_rank = mirrored_rank(move.piece.color, move.from.rank);
+    if (move.from.file == 7 && mirrored_from_rank == 0) {
+        can_castle_kingside = false;
+    } else if (move.from.file == 0 && mirrored_from_rank == 0) {
+        can_castle_queenside = false;
+    }
+    return apply_move_linear(move.from, move.to, true);
+}
+
+Piece Board::apply_move_knight(Move move) {
+    assert(abs(move.to.rank - move.from.rank) == 2 || abs(move.to.file - move.from.file) == 2);
+    assert(abs(move.to.rank - move.from.rank) == 1 || abs(move.to.file - move.from.file) == 1);
+    assert(occupation(move.to.rank, move.to.file) != move.piece.color);
+    return move_piece(move.from, move.to);
+}
+
+Piece Board::apply_move_bishop(Move move) {
+    assert(abs(move.to.rank - move.from.rank) == abs(move.to.file - move.from.file));
+    return apply_move_linear(move.from, move.to, true);
+}
+
+Piece Board::apply_move_linear(Position from, Position to, bool allow_capture) {
+    int drank = three_way_compare(to.rank, from.rank);
+    int dfile = three_way_compare(to.file, from.file);
+    Color color = board[from.rank][from.file].color;
+    assert((to.rank - from.rank) * dfile == (to.file - from.file) * drank);
+
+    int rank = from.rank, file = from.file;
+    while (rank != to.rank) {
+        if (occupation(rank + drank, file + dfile) == color) {
+            break;
+        } else if (occupation(rank + drank, file + dfile) == opponent(color)) {
+            if (allow_capture) {
+                rank += drank;
+                file += dfile;
+            }
+            break;
+        }
+        rank += drank;
+        file += dfile;
+    }
+    return move_piece(from, Position{rank, file});
+}
+
+Piece Board::move_piece(Position from, Position to) {
+    Piece captured = board[to.rank][to.file];
+    board[to.rank][to.file] = board[from.rank][from.file];
+    board[from.rank][from.file] = Piece::EMPTY;
+    en_passant_target = {-1, -1};
     return captured;
 }
 

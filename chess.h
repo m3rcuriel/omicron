@@ -24,6 +24,8 @@ struct Piece {
     Color color : 2;
     PieceType type : 6;
 
+    static Piece EMPTY;
+
     char get_symbol() const;
 
     bool operator==(const Piece& other) {
@@ -77,7 +79,7 @@ public:
     Piece get_piece(int i, int j);
     void set_piece(int i, int j, Piece piece);
 
-private:
+//private:
     void collect_moves_for_piece(int rank, int file, std::vector<Move> *moves) const;
     void collect_moves_for_pawn(int rank, int file, std::vector<Move> *moves) const;
     void collect_moves_for_queen(int rank, int file, std::vector<Move> *moves) const;
@@ -85,6 +87,16 @@ private:
     void collect_moves_for_rook(int rank, int file, std::vector<Move> *moves) const;
     void collect_moves_for_knight(int rank, int file, std::vector<Move> *moves) const;
     void collect_moves_for_bishop(int rank, int file, std::vector<Move> *moves) const;
+
+    Piece apply_move_pawn(Move move);
+    Piece apply_move_queen(Move move);
+    Piece apply_move_king(Move move);
+    Piece apply_move_rook(Move move);
+    Piece apply_move_knight(Move move);
+    Piece apply_move_bishop(Move move);
+
+    Piece apply_move_linear(Position from, Position to, bool allow_capture);
+    Piece move_piece(Position from, Position to);
 
     Piece* find_piece(PieceType type, Color color, int rank, int file);
 
