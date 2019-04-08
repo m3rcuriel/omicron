@@ -348,7 +348,7 @@ void Board::collect_moves_for_pawn(int rank, int file, std::vector<Move> *moves)
         add_move(piece, rank, file, rank + direction, file - 1, moves);
     }
 
-    // TODO En passant capture
+    // En passant capture
     if (en_passant_target.rank == rank + direction
             && abs(en_passant_target.file - file) == 1) {
         add_move(piece, rank, file, en_passant_target.rank, en_passant_target.file, moves);
