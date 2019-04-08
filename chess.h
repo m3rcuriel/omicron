@@ -40,6 +40,8 @@ struct Piece {
 struct Position {
     int8_t rank, file;
 
+    Position(int rank, int file) : rank(static_cast<int>(rank)), file(static_cast<int>(file)) {}
+
     bool operator==(const Position& other) {
         return rank == other.rank && file == other.file;
     }
@@ -70,6 +72,7 @@ public:
     explicit Board(const std::array<std::array<Piece, 8>, 8>& board);
     std::vector<Move> generate_moves(Color turn) const;
 
+    // Apply a move and return the captured piece, if any
     Piece apply_move(Move move);
 
     static Board initial_board();
@@ -79,7 +82,8 @@ public:
     Piece get_piece(int i, int j);
     void set_piece(int i, int j, Piece piece);
 
-//private:
+private:
+    // Collect the valid moves for a given piece into the vector at `moves`.
     void collect_moves_for_piece(int rank, int file, std::vector<Move> *moves) const;
     void collect_moves_for_pawn(int rank, int file, std::vector<Move> *moves) const;
     void collect_moves_for_queen(int rank, int file, std::vector<Move> *moves) const;
@@ -88,6 +92,7 @@ public:
     void collect_moves_for_knight(int rank, int file, std::vector<Move> *moves) const;
     void collect_moves_for_bishop(int rank, int file, std::vector<Move> *moves) const;
 
+    // Apply a move for a specific piece type.
     Piece apply_move_pawn(Move move);
     Piece apply_move_queen(Move move);
     Piece apply_move_king(Move move);
@@ -98,13 +103,12 @@ public:
     Piece apply_move_linear(Position from, Position to, bool allow_capture);
     Piece move_piece(Position from, Position to);
 
-    Piece* find_piece(PieceType type, Color color, int rank, int file);
-
     Color occupation(int i, int j) const;
 
     std::array<std::array<Piece, 8>, 8> board;
 
-    bool can_castle_kingside = false, can_castle_queenside = false;
+    bool can_castle_kingside_white = false, can_castle_queenside_white = false,
+         can_castle_kingside_black = false, can_castle_queenside_black = false;
     Position en_passant_target {-1, -1};
 };
 

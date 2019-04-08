@@ -93,8 +93,10 @@ Board Board::initial_board() {
     result.board[1][6] = Piece{Color::WHITE, PieceType::PAWN};
     result.board[1][7] = Piece{Color::WHITE, PieceType::PAWN};
 
-    result.can_castle_kingside = true;
-    result.can_castle_queenside = true;
+    result.can_castle_kingside_white = true;
+    result.can_castle_queenside_white = true;
+    result.can_castle_kingside_black = true;
+    result.can_castle_queenside_black = true;
 
     return result;
 }
@@ -112,8 +114,6 @@ void Board::debug_print(std::ostream& out) const {
 }
 
 Piece Board::apply_move(Move move) {
-    // TODO(Kyle): Check for error
-    // Check for castling
     switch (move.piece.type) {
         case PieceType::KING:
             return apply_move_king(move);
@@ -181,6 +181,8 @@ Piece Board::apply_move_king(Move move) {
     Color color = move.piece.color;
     int mirrored_from_rank = mirrored_rank(color, move.from.rank),
         mirrored_to_rank = mirrored_rank(color, move.to.rank);
+    bool &can_castle_kingside = (color == Color::WHITE ? can_castle_kingside_white : can_castle_kingside_black);
+    bool &can_castle_queenside = (color == Color::WHITE ? can_castle_queenside_white : can_castle_queenside_black);
     if (abs(move.from.file - move.to.file) > 1) {
         assert(mirrored_from_rank == mirrored_to_rank);
         assert(mirrored_from_rank == 0);
@@ -190,8 +192,7 @@ Piece Board::apply_move_king(Move move) {
             assert(can_castle_kingside);
             if (occupation(move.from.rank, 6) != Color::EMPTY
                     || occupation(move.from.rank, 5) != Color::EMPTY) {
-                // TODO(Kyle): Does this actualy revoke future castling ability?
-                can_castle_kingside = can_castle_queenside = false;
+                // We can't take this move, so don't revoke castling ability.
                 return Piece::EMPTY;
             }
             move_piece(move.from, move.to);
@@ -202,8 +203,7 @@ Piece Board::apply_move_king(Move move) {
             if (occupation(move.from.rank, 1) != Color::EMPTY
                     || occupation(move.from.rank, 2) != Color::EMPTY
                     || occupation(move.from.rank, 3) != Color::EMPTY) {
-                // TODO(Kyle): Does this actualy revoke future castling ability?
-                can_castle_kingside = can_castle_queenside = false;
+                // Same situation as above: no move taken
                 return Piece::EMPTY;
             }
             move_piece(move.from, move.to);
@@ -223,7 +223,10 @@ Piece Board::apply_move_king(Move move) {
 
 Piece Board::apply_move_rook(Move move) {
     assert((move.to.rank - move.from.rank) == 0 || (move.to.file - move.from.file) == 0);
-    int mirrored_from_rank = mirrored_rank(move.piece.color, move.from.rank);
+    Color color = move.piece.color;
+    int mirrored_from_rank = mirrored_rank(color, move.from.rank);
+    bool &can_castle_kingside = (color == Color::WHITE ? can_castle_kingside_white : can_castle_kingside_black);
+    bool &can_castle_queenside = (color == Color::WHITE ? can_castle_queenside_white : can_castle_queenside_black);
     if (move.from.file == 7 && mirrored_from_rank == 0) {
         can_castle_kingside = false;
     } else if (move.from.file == 0 && mirrored_from_rank == 0) {
@@ -477,7 +480,10 @@ void Board::collect_moves_for_king(int rank, int file, std::vector<Move> *moves)
         add_move(piece, rank, file, rank - 1, file + 1, moves);
     }
 
-    // TODO Castling
+    bool can_castle_kingside = (color == Color::WHITE ? can_castle_kingside_white : can_castle_kingside_black);
+    bool can_castle_queenside = (color == Color::WHITE ? can_castle_queenside_white : can_castle_queenside_black);
+
+    // Castling
     if (can_castle_kingside
             && occupation(rank, 5) == Color::EMPTY
             && occupation(rank, 6) == Color::EMPTY) {
