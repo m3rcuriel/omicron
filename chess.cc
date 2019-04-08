@@ -6,6 +6,8 @@ namespace chess {
 
 Piece Piece::EMPTY{Color::EMPTY, PieceType::EMPTY};
 
+namespace {
+
 int three_way_compare(int a, int b) {
     return a > b ? 1 : (b > a ? -1 : 0);
 }
@@ -16,6 +18,24 @@ int mirrored_rank(Color color, int rank) {
     } else {
         return 7 - rank;
     }
+}
+
+void add_move(
+        Piece piece,
+        int r, int f,
+        int nr, int nf,
+        std::vector<Move> *moves,
+        int tr = -1, int tf = -1) {
+    if (nr < 0 || nr >= 8 || nf < 0 || nf >= 8) {
+        return;
+    }
+    if (tr == -1 && tf == -1) {
+        tr = nr;
+        tf = nf;
+    }
+    moves->push_back(Move{piece, Position{r, f}, Position{nr, nf}});
+}
+
 }
 
 Board::Board() {
@@ -305,22 +325,6 @@ void Board::collect_moves_for_piece(int rank, int file, std::vector<Move> *moves
 
 Color Board::occupation(int i, int j) const {
     return board[i][j].color;
-}
-
-void add_move(
-        Piece piece,
-        int r, int f,
-        int nr, int nf,
-        std::vector<Move> *moves,
-        int tr = -1, int tf = -1) {
-    if (nr < 0 || nr >= 8 || nf < 0 || nf >= 8) {
-        return;
-    }
-    if (tr == -1 && tf == -1) {
-        tr = nr;
-        tf = nf;
-    }
-    moves->push_back(Move{piece, Position{r, f}, Position{nr, nf}});
 }
 
 void Board::collect_moves_for_pawn(int rank, int file, std::vector<Move> *moves) const {
