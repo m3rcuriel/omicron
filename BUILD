@@ -6,6 +6,13 @@ cc_library(
 	hdrs = ["chess.h"],
 )
 
+cc_library(
+    name = "uct",
+    srcs = ["uct.cc"],
+    hdrs = ["uct.h"],
+    deps = [":chess"],
+)
+
 cc_test(
 	name = "chess_test",
 	srcs = ["chess_test.cc"],
