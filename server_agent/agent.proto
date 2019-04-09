@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+enum PieceType {
+  PAWN = 0;
+  KNIGHT = 1;
+  BISHOP = 2;
+  ROOK = 3;
+  QUEEN = 4;
+  KING = 5;
+}
+
+// This is actually more compactly encoded in python-chess but I don't care
+// because it will be small on the wire (I hope)
+enum Color {
+  WHITE = 0;
+  BLACK = 1;
+}
+
+message Piece {
+  PieceType piece_type = 1;
+  Color color = 2;
+}
+
+// Explicitly not using the "board position" notation that python-chess uses
+message Position {
+  uint32 rank = 1;
+  uint32 file = 2;
+}
+
+message Move {
+  Position to_square = 1;
+  Position from_square = 2;
+  bool has_promotion = 3;
+  PieceType promotion = 4;
+}
+
+message HandleGameStartRequest {
+  Color color = 1;
+  // TODO(lmracek) add initial board state?
+}
+
+message HandleOpponentMoveRequest {
+  // Contains the position where your piece was captured if a piece was
+  // captured
+  Position captured_square = 2;
+}
+
+message ChooseSenseRequest {
+  repeated Position possible_sense = 1;
+  repeated Move possible_moves = 2;
+  float seconds_left = 3;
+}
+
+message ChooseSenseReply {
+  Position sense_location = 1;
+}
+
+message SenseResult {
+  Position square = 1;
+  // Only passed along if the square is populated
+  Piece piece = 2;
+}
+
+message HandleSenseResultRequest {
+  // This is a list of the individual position results
+  repeated SenseResult result = 1;
+}
+
+message ChooseMoveRequest {
+  repeated Move possible_moves = 1;
+  float seconds_left = 2;
+}
+
+message ChooseMoveReply {
+  Move move = 1;
+}
+
+message HandleMoveResultRequest {
+  Move requested_move = 1;
+  Move taken_move = 2;
+  string reason = 3;
+  // only populated if a piece is actually captured
+  Position captured_position = 4;
+}
+
+message HandleGameEndRequest {
+  Color winner_color = 1;
+  string win_reason = 2;
+}
+
+service RemoteAgent {
+  rpc HandleGameStart(HandleGameStartRequest) returns (google.protobuf.Empty) {
+  }
+
+  rpc HandleOpponentMove(HandleOpponentMoveRequest)
+      returns (google.protobuf.Empty) {
+  }
+
+  rpc ChooseSense(ChooseSenseRequest) returns (ChooseSenseReply) {
+  }
+
+  rpc HandleSenseResult(HandleSenseResultRequest)
+      returns (google.protobuf.Empty) {
+  }
+
+  rpc ChooseMove(ChooseMoveRequest) returns (ChooseMoveReply) {
+  }
+
+  rpc HandleMoveResult(HandleMoveResultRequest)
+      returns (google.protobuf.Empty) {
+  }
+
+  rpc HandleGameEnd(HandleGameEndRequest) returns (google.protobuf.Empty) {
+  }
+}
