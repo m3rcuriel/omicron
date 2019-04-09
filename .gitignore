@@ -1,4 +1,4 @@
 bazel-*
 __pycache__
 chess_agent.so
-GameHistory/
+recon/GameHistory/
