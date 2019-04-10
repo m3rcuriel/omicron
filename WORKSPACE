@@ -50,9 +50,9 @@ latex_repositories()
 
 http_archive(
     name = "build_stack_rules_proto",
-    urls = ["https://github.com/stackb/rules_proto/archive/91cbae9bd71a9c51406014b8b3c931652fb6e660.tar.gz"],
-    sha256 = "5474d1b83e24ec1a6db371033a27ff7aff412f2b23abba86fedd902330b61ee6",
-    strip_prefix = "rules_proto-91cbae9bd71a9c51406014b8b3c931652fb6e660",
+    urls = ["https://github.com/stackb/rules_proto/archive/609362dd9b08110b7a95bfa26b5e3aac3cd06905.tar.gz"],
+    sha256 = "9c9fc051189dd87bd643cf69e82e3b08de03114fc03155de784ba60bd0cef4b6",
+    strip_prefix = "rules_proto-609362dd9b08110b7a95bfa26b5e3aac3cd06905",
 )
 
 load("@build_stack_rules_proto//python:deps.bzl", "python_grpc_library")
@@ -84,6 +84,15 @@ pip_import(
 load("@grpc_py_deps//:requirements.bzl", grpc_pip_install="pip_install")
 
 grpc_pip_install()
+
+pip_import(
+    name = "recon_deps",
+    requirements = "//recon:requirements.txt",
+)
+
+load("@recon_deps//:requirements.bzl", recon_pip_install="pip_install")
+
+recon_pip_install()
 
 """
 From tensorflow's WORKSPACE file
