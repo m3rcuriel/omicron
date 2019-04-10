@@ -2,6 +2,9 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
+//
+// Equivalent to chess.PieceType
+//
 enum PieceType {
   PAWN = 0;
   KNIGHT = 1;
@@ -11,24 +14,41 @@ enum PieceType {
   KING = 5;
 }
 
+//
+// Equivalent to chess.Color
+//
 // This is actually more compactly encoded in python-chess but I don't care
 // because it will be small on the wire (I hope)
+//
 enum Color {
   WHITE = 0;
   BLACK = 1;
 }
 
+//
+// Equivalent to a chess.Piece
+//
 message Piece {
   PieceType piece_type = 1;
   Color color = 2;
 }
 
+//
+// Stores a Position as a (rank, file) ordered pair.
+//
 // Explicitly not using the "board position" notation that python-chess uses
+//
 message Position {
   uint32 rank = 1;
   uint32 file = 2;
 }
 
+//
+// Equivalent to a chess.Move
+//
+// We ignore the shogi drop option, and are forced to provide a has_promotion
+// field as promotion is a raw type not a message.
+//
 message Move {
   Position to_square = 1;
   Position from_square = 2;
@@ -36,47 +56,93 @@ message Move {
   PieceType promotion = 4;
 }
 
+//
+// The start of the game request only handles the color we've been assigned
+// and currently trusts the implementor to understand what a default board
+// state looks like.
+//
 message HandleGameStartRequest {
   Color color = 1;
   // TODO(lmracek) add initial board state?
 }
 
+//
+// The request to handle the opponent move just contains the capturing of one
+// of our pieces if it was captures. If not, this message is empty.
+//
 message HandleOpponentMoveRequest {
   // Contains the position where your piece was captured if a piece was
   // captured
   Position captured_square = 2;
 }
 
+//
+// In order to choose a sense we require the list of sensable positions,
+// and are also provided the list of possible moves and the amount of
+// seconds left of play.
+//
+// In python, `repeated` messages are treated as lists.
+//
 message ChooseSenseRequest {
   repeated Position possible_sense = 1;
   repeated Move possible_moves = 2;
   float seconds_left = 3;
 }
 
+//
+// In order to interact we reply with the location we wish to sense.
+//
+// Leaving this empty will be equated with no move.
+//
 message ChooseSenseReply {
   Position sense_location = 1;
 }
 
+//
+// A single result of sensing. It contains the square you sensed and
+// a piece if a piece was in that square.
+//
 message SenseResult {
   Position square = 1;
   // Only passed along if the square is populated
   Piece piece = 2;
 }
 
+//
+// The set of completed sense measurements.
+//
+// In python, `repeated` messages are treated as lists.
+//
 message HandleSenseResultRequest {
   // This is a list of the individual position results
   repeated SenseResult result = 1;
 }
 
+//
+// We are given a list of possible moves and the amount of time left in the
+// game.
+//
+// In python, `repeated` messages are treated as lists.
+//
 message ChooseMoveRequest {
   repeated Move possible_moves = 1;
   float seconds_left = 2;
 }
 
+//
+// We pass back to the client the chosen move.
+//
+// An empty message will be interpreted as no move.
+//
 message ChooseMoveReply {
   Move move = 1;
 }
 
+//
+// We are given the requested move, and the taken move if a move was able to be
+// taken. If this move resulted in a capture of a piece, we also pass along the
+// position where the piece was captured.
+//
 message HandleMoveResultRequest {
   Move requested_move = 1;
   Move taken_move = 2;
@@ -90,6 +156,21 @@ message HandleGameEndRequest {
   string win_reason = 2;
 }
 
+//
+// The remote agent is defined as a gRPC service to handle each stage of the
+// game. these remote calls mirror the calls in the local agent implementations.
+//
+// Those calls which do not require a return will return an empty message.
+//
+// Anyone wishing to extend this service must simply add a Request and Reply
+// and implement the call on the client and on the server.
+//
+// The python files can be generated according to the instructions which can be
+// found online or in the README, but for reference the implementation posted
+// was generated with:
+// `python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=.
+// agent.proto`
+//
 service RemoteAgent {
   rpc HandleGameStart(HandleGameStartRequest) returns (google.protobuf.Empty) {
   }
