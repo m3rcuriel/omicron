@@ -1,49 +1,124 @@
-#include <cmath>
-#include <algorithm>
+#include <vector>
+#include <memory>
+#include <random>
+
 #include "chess.h"
 
 namespace chess {
 
 namespace agent {
 
-constexpr size_t kNumParticles = 5000;
-constexpr double kUcbGain = 1.0;
-
-struct Particle {
-    Board board;
-};
-
-class UctTree {};
-
+class OurUctNode;
+class OpponentUctNode;
 struct UcbEntry;
 
-double heuristic(const std::array<Particle, kNumParticles>& p);
+constexpr size_t kNumParticles = 100;
 
-struct UctNode {
-    std::array<Particle, kNumParticles> particles;
+class StateDistribution {
+public:
+    StateDistribution(std::vector<Board>&& boards) : particles(std::move(boards)) {}
+    StateDistribution(StateDistribution&&) = default;
+    StateDistribution(const StateDistribution&) = default;
 
-    std::vector<UcbEntry> entries_heap;
-    std::vector<UctNode> children;
+    Board sample() const;
 
-    int num_tries = 0;
-    int win_count = 0;
+    // Update the board and return the fraction of games won by that move.
+    double update(Move move);
 
-    Color color;
+    double heuristic_value(Color color);
 
-    UctNode(std::array<Particle, kNumParticles> previous, Move move, Color color);
-    UctNode(const UctNode& other) = delete;
-    UctNode(UctNode&& other) = default;
+    // Move each particle randomly, splitting into equivalence classes by captured piece
+    // Returns [(weight, capture, distribution)]
+    std::vector<std::tuple<int, Capture, StateDistribution>>
+        update_random(Color opponent_color) const;
 
-    double run_uct(int search_depth);
+    std::vector<Move> get_available_actions(Color color) const;
+
+private:
+    std::vector<Board> particles;
 };
 
-struct UcbEntry {
-    Move move;
-    double total_value;
-    int child_index;
+// A game state represented by a set of particles.
+// Corresponds to T(ha).
+class OurUctNode {
+public:
+    OurUctNode(Board board, Color color);
+    OurUctNode(StateDistribution state, Color color);
 
-    double get_value(int child_tries) const;
-    double get_ucb(int parent_tries, int child_tries) const;
+    void print_moves();
+
+    double simulate(int depth);
+
+    double get_value() const;
+
+private:
+    // The state distribution before our move.
+    StateDistribution state;
+
+    Color color;
+    std::vector<UcbEntry> ucb_table;
+
+    int count = 0;
+};
+
+// A set of particles plus the next action to be taken by us.
+// Corresponds to T(ha).
+struct UcbEntry {
+    UcbEntry(const StateDistribution& state_prior, Move our_move, Color our_color);
+
+    // Create the opponent nodes.
+    void generate();
+
+    Color our_color;
+
+    // The corresponding move
+    Move our_move;
+
+    // The opponent's UCT node is initialized in a lazy fashion
+    // to save on RAM usage.
+    std::unique_ptr<OpponentUctNode> node;
+
+    // The state distribution after our move.
+    StateDistribution state;
+
+    // The number of times this entry has been taken.
+    int count = 0;
+
+    // The expected value of this entry.
+    double value = 0;
+
+    // The immediate reward for having taken this action.
+    double reward = 0;
+};
+
+// Allows us to split the tree on opponent moves. This is not
+// included in the paper on POMCPs.
+class OpponentUctNode {
+public:
+    OpponentUctNode(const StateDistribution& state_prior, Color our_color);
+
+    // Returns the reward from a single simulated instance.
+    double simulate(int depth);
+
+private:
+    Color our_color;
+
+    // Immediate reward, calculated from wins - losses in initial particles.
+    double reward = 0;
+
+    double value = 0;
+
+    // The total number of times this node has been explored.
+    // Immediately initialized to the number of wins + losses
+    // (those games are assumed to be simulated out fully).
+    int count = 0;
+
+    std::vector<OurUctNode> children;
+
+    std::discrete_distribution<int> child_weights;
+
+    // The state before the opponent move.
+    StateDistribution state;
 };
 
 } // namespace agent

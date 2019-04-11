@@ -16,6 +16,16 @@ cc_library(
 )
 
 cc_test(
+    name = "uct_test",
+    srcs = ["uct_test.cc"],
+	deps = [
+		":uct",
+		"@googletest//:gtest",
+		"@googletest//:gtest_main",
+	],
+)
+
+cc_test(
 	name = "chess_test",
 	srcs = ["chess_test.cc"],
 	deps = [
