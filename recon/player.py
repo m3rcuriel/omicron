@@ -15,11 +15,9 @@ import importlib
 import inspect
 import chess
 
-
 class Player(object):
     def __init__(self):
         pass
-
 
 def load_player(source_path):
     """

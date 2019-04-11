@@ -1,5 +1,7 @@
 load("@org_tensorflow//tensorflow:tensorflow.bzl", "tf_cc_binary")
 
+package(default_visibility = ["//visibility:public"])
+
 cc_library(
 	name = "chess",
 	srcs = ["chess.cc"],
@@ -27,10 +29,8 @@ tf_cc_binary(
     name = "chess_agent.so",
     srcs = ["chess_agent.cc"],
     deps = [
-        "@org_tensorflow//tensorflow/cc:cc_ops",
-        "@org_tensorflow//tensorflow/cc:client_session",
-        "@org_tensorflow//tensorflow/core:tensorflow",
         "@pybind11//:pybind11",
+        ":chess",
     ],
     copts = ["-fexceptions"],
     linkshared = 1,

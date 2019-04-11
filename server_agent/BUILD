@@ -1,4 +1,5 @@
 load("@build_stack_rules_proto//python:python_grpc_library.bzl", "python_grpc_library")
+load("@recon_deps//:requirements.bzl", "requirement")
 
 proto_library(
     name = "agent_proto",
@@ -40,6 +41,7 @@ py_library(
     deps = [
         ":agent_python_proto",
         "//recon:player",
+        requirement("python-chess"),
     ],
     visibility = ["//visibility:public"],
 )
