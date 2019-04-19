@@ -1,6 +1,7 @@
 #include "chess.h"
 #include <iostream>
 #include <cassert>
+#include "util.h"
 
 namespace chess {
 
@@ -479,6 +480,29 @@ void Board::collect_moves_linear(
             add_move(rank, file, rank + dr * i, file + df * i, moves);
         } else {
             break;
+        }
+    }
+}
+
+Capture Board::do_random_move(Color color) {
+    int num_pieces = 0;
+    std::array<Position, 16> positions;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            if (occupation(i, j) == color) {
+                positions[num_pieces++] = {i, j};
+            }
+        }
+    }
+
+    while (true) {
+        Position piece_position = positions[random_int(num_pieces)];
+
+        // Calculate moves for position.
+        std::vector<Move> moves;
+        collect_moves_for_piece(piece_position.rank, piece_position.file, &moves);
+        if (moves.size()) {
+            return apply_move(random_choice(moves));
         }
     }
 }

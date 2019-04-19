@@ -3,16 +3,23 @@ load("@org_tensorflow//tensorflow:tensorflow.bzl", "tf_cc_binary")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
+    name = "util",
+    srcs = [],
+    hdrs = ["util.h"],
+)
+
+cc_library(
 	name = "chess",
 	srcs = ["chess.cc"],
 	hdrs = ["chess.h"],
+    deps = [":util"],
 )
 
 cc_library(
     name = "uct",
-    srcs = ["uct.cc"],
-    hdrs = ["uct.h"],
-    deps = [":chess"],
+    srcs = ["uct.cc", "particle_filter.cc"],
+    hdrs = ["uct.h", "particle_filter.h"],
+    deps = [":chess", ":util"],
 )
 
 cc_test(

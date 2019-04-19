@@ -11,25 +11,6 @@ TEST(Chess, ReprSizes) {
     EXPECT_LT(sizeof(Board), 80);
 }
 
-TEST(Chess, InitialBoard) {
-    chess::Board board = chess::Board::initial_board();
-
-    for (int i = 0; i < 8; i++) {
-        EXPECT_EQ(board.get_piece(0, i).color, chess::Color::WHITE);
-        EXPECT_EQ(board.get_piece(7, i).color, chess::Color::BLACK);
-        EXPECT_EQ(board.get_piece(0, i).type, board.get_piece(7, i).type);
-        EXPECT_EQ(board.get_piece(1, i).type, chess::PieceType::PAWN);
-        EXPECT_EQ(board.get_piece(6, i).type, chess::PieceType::PAWN);
-    }
-
-    for (int i = 2; i < 6; i++) {
-        for (int j = 0; j < 8; j++) {
-            EXPECT_EQ(board.get_piece(i, j).type, chess::PieceType::EMPTY);
-            EXPECT_EQ(board.get_piece(i, j).color, chess::Color::EMPTY);
-        }
-    }
-}
-
 void expect_moves(
         Board board, Color turn,
         std::vector<std::pair<Position, Position>> expected_moves) {
@@ -44,6 +25,47 @@ void expect_moves(
                         return m.from == e.first && m.to == e.second;
                     }) != moves.end()) << "Did not find expected move " << (int) e.first.rank << ", " << (int) e.first.file << " -> " << (int) e.second.rank << ", " << (int) e.second.file;
     }
+}
+
+TEST(Chess, InitialBoard) {
+    chess::Board board = chess::Board::initial_board();
+
+    expect_moves(board, Color::WHITE, {
+        {{1, 0}, {2, 0}},
+        {{1, 1}, {2, 1}},
+        {{1, 2}, {2, 2}},
+        {{1, 3}, {2, 3}},
+        {{1, 4}, {2, 4}},
+        {{1, 5}, {2, 5}},
+        {{1, 6}, {2, 6}},
+        {{1, 7}, {2, 7}},
+        {{1, 0}, {3, 0}},
+        {{1, 1}, {3, 1}},
+        {{1, 2}, {3, 2}},
+        {{1, 3}, {3, 3}},
+        {{1, 4}, {3, 4}},
+        {{1, 5}, {3, 5}},
+        {{1, 6}, {3, 6}},
+        {{1, 7}, {3, 7}},
+        {{1, 0}, {2, 1}},
+        {{1, 1}, {2, 0}},
+        {{1, 1}, {2, 2}},
+        {{1, 2}, {2, 1}},
+        {{1, 2}, {2, 3}},
+        {{1, 3}, {2, 2}},
+        {{1, 3}, {2, 4}},
+        {{1, 4}, {2, 3}},
+        {{1, 4}, {2, 5}},
+        {{1, 5}, {2, 4}},
+        {{1, 5}, {2, 6}},
+        {{1, 6}, {2, 5}},
+        {{1, 6}, {2, 7}},
+        {{1, 7}, {2, 6}},
+        {{0, 1}, {2, 0}},
+        {{0, 1}, {2, 2}},
+        {{0, 6}, {2, 5}},
+        {{0, 6}, {2, 7}},
+    });
 }
 
 TEST(Chess, BasicPawnMoves) {

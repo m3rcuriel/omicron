@@ -1,3 +1,5 @@
+#pragma once
+
 #include <array>
 #include <vector>
 #include <iostream>
@@ -56,6 +58,7 @@ struct Position {
     int8_t rank, file;
 
     Position(int rank, int file) : rank(static_cast<int>(rank)), file(static_cast<int>(file)) {}
+    Position() : Position(-1, -1) {}
 
     static Position NONE;
 
@@ -78,7 +81,7 @@ struct Position {
     }
 };
 
-std::ostream& operator<<(std::ostream& out, Position m) {
+inline std::ostream& operator<<(std::ostream& out, Position m) {
     out << "(" << (int) m.rank << ", " << (int) m.file << ")";
     return out;
 }
@@ -114,7 +117,7 @@ struct Move {
     Position from, to;
 };
 
-std::ostream& operator<<(std::ostream& out, Move m) {
+inline std::ostream& operator<<(std::ostream& out, Move m) {
     out << m.from << " -> " << m.to;
     return out;
 }
@@ -142,6 +145,8 @@ public:
 
     Piece get_piece(int i, int j) const;
     void set_piece(int i, int j, Piece piece);
+
+    Capture do_random_move(Color color);
 
     bool get_castle_kingside_white() const { return can_castle_kingside_white; }
     bool get_castle_queenside_white() const { return can_castle_queenside_white; }
