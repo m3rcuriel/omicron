@@ -192,7 +192,7 @@ class RandomAgentServicer(agent_pb2_grpc.RemoteAgentServicer):
         return self.peer_map[context.peer()].choose_move(request)
 
     def HandleMoveResult(self, request, context):
-        return self.peer_map[context.peer()].handle_move_request(request)
+        return self.peer_map[context.peer()].handle_move_result(request)
 
     def HandleGameEnd(self, request, context):
         res = self.peer_map[context.peer()].handle_game_end(request)
