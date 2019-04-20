@@ -13,7 +13,7 @@ TEST(Uct, MakesTrivialMove) {
     OurUctNode root(starting_board, Color::WHITE);
 
     for (int i = 0; i < 1000; i++) {
-        root.simulate(15);
+        root.simulate(10);
     }
     root.print_moves();
 }
