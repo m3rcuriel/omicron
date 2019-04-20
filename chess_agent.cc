@@ -25,7 +25,9 @@ Position ChessAgent::choose_sense(
     return possible_sense[0];
 }
 
-void ChessAgent::handle_sense_result(Observation sense_result) {}
+void ChessAgent::handle_sense_result(Observation sense_result) {
+    particle_filter.observe(sense_result, our_color);
+}
 
 Move ChessAgent::choose_move(
         std::vector<Move> possible_moves, double seconds_left) {
