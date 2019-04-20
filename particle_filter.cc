@@ -84,7 +84,6 @@ StateDistribution::update_random(Color opponent_color) const {
             std::get<2>(result[indices[capture]]).particles.push_back(b);
         }
     }
-    /*
     for (auto& it : result) {
         std::vector<Board>& it_particles = std::get<2>(it).particles;
         while (it_particles.size() < particles.size()) {
@@ -95,7 +94,6 @@ StateDistribution::update_random(Color opponent_color) const {
             it_particles.push_back(b);
         }
     }
-    */
     return result;
 }
 
@@ -103,7 +101,6 @@ std::vector<Move> StateDistribution::get_available_actions(Color color) const {
     return particles[0].generate_moves(color);
 }
 
-/*
 static bool is_valid(const Board& b, Observation obs) {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
@@ -167,7 +164,6 @@ void StateDistribution::reinitialize(Board board) {
     std::vector<Board> new_particles(kNumParticles, board);
     std::swap(new_particles, particles);
 }
-*/
 
 } // namespace agent
 
