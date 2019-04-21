@@ -165,6 +165,43 @@ void StateDistribution::reinitialize(Board board) {
     std::swap(new_particles, particles);
 }
 
+double StateDistribution::square_entropy(Position position) const {
+    std::map<Piece, int> piece_counts;
+    for (const Board& p : particles) {
+        Piece piece = p.get_piece(position.rank, position.file);
+        auto it = piece_counts.find(piece);
+        if (it == piece_counts.end()) {
+            piece_counts.insert({piece, 1});
+        } else {
+            it->second++;
+        }
+    }
+
+    double entropy = 0.0;
+    for (auto it : piece_counts) {
+        if (it.second > 0) {
+            double prob = static_cast<double>(it.second) / particles.size();
+            entropy -= prob * std::log2(prob);
+        }
+    }
+    return entropy;
+}
+
+void StateDistribution::handle_opponent_move_result(Capture capture, Color opponent_color) {
+    std::vector<Board> new_particles;
+    while (new_particles.size() < particles.size()) {
+        Board b = random_choice(particles);
+        while (random_float(0, 1) < 0.2) {
+            b = mutate_board(b, opponent_color);
+        }
+        Capture c = b.do_random_move(opponent_color);
+        if (c == capture) {
+            new_particles.push_back(b);
+        }
+    }
+    std::swap(particles, new_particles);
+}
+
 } // namespace agent
 
 } // namespace chess

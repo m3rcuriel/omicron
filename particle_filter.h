@@ -14,6 +14,8 @@ constexpr size_t kNumParticles = 1000000;
 
 struct Observation {
     std::array<std::array<Piece, 3>, 3> obs;
+
+    // Top-left
     Position origin;
 };
 
@@ -48,9 +50,14 @@ public:
     // Handle our move
     void handle_move_result(MoveResult move_result, Color our_color);
 
+    // Handle opponent move
+    void handle_opponent_move_result(Capture capture, Color opponent_color);
+
     StateDistribution subsample(size_t num);
 
     void reinitialize(Board board);
+
+    double square_entropy(Position position) const;
 
 private:
     // Move one piece of the given color to some other free spot.
