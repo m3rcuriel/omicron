@@ -9,7 +9,20 @@ namespace chess {
 
 namespace agent {
 
-constexpr size_t kNumParticles = 1000;
+constexpr size_t kNumParticlesRollout = 100;
+constexpr size_t kNumParticles = 1000000;
+
+struct Observation {
+    std::array<std::array<Piece, 3>, 3> obs;
+
+    // Top-left
+    Position origin;
+};
+
+struct MoveResult {
+    Move move;
+    Capture capture;
+};
 
 class StateDistribution {
 public:
@@ -31,7 +44,25 @@ public:
 
     std::vector<Move> get_available_actions(Color color) const;
 
+    // Handle our observation
+    void observe(Observation obs, Color our_color);
+
+    // Handle our move
+    void handle_move_result(MoveResult move_result, Color our_color);
+
+    // Handle opponent move
+    void handle_opponent_move_result(Capture capture, Color opponent_color);
+
+    StateDistribution subsample(size_t num);
+
+    void reinitialize(Board board);
+
+    double square_entropy(Position position) const;
+
 private:
+    // Move one piece of the given color to some other free spot.
+    static Board mutate_board(Board board, Color color);
+
     std::vector<Board> particles;
 };
 

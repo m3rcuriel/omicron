@@ -6,7 +6,7 @@
 
 namespace chess {
 
-enum class PieceType: uint8_t {
+enum class PieceType : uint8_t {
     EMPTY,
     PAWN,
     QUEEN,
@@ -16,7 +16,7 @@ enum class PieceType: uint8_t {
     BISHOP
 };
 
-enum class Color: uint8_t {
+enum class Color : uint8_t {
     EMPTY,
     WHITE,
     BLACK
@@ -152,6 +152,7 @@ public:
     bool get_castle_queenside_white() const { return can_castle_queenside_white; }
     bool get_castle_kingside_black() const { return can_castle_kingside_black; }
     bool get_castle_queenside_black() const { return can_castle_queenside_black; }
+    Capture move_piece(Position from, Position to);
 
 private:
     // Collect the valid moves for a given piece into the vector at `moves`.
@@ -173,7 +174,6 @@ private:
     Capture apply_move_bishop(Move move);
 
     Capture apply_move_linear(Position from, Position to, bool allow_capture);
-    Capture move_piece(Position from, Position to);
 
     Color occupation(int i, int j) const;
 

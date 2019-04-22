@@ -42,12 +42,23 @@ cc_test(
 	],
 )
 
-tf_cc_binary(
-    name = "chess_agent.so",
+cc_library(
+    name = "chess_agent",
     srcs = ["chess_agent.cc"],
+    hdrs = ["chess_agent.h"],
     deps = [
         "@pybind11//:pybind11",
         ":chess",
+        ":uct",
+    ]
+)
+
+tf_cc_binary(
+    name = "local_pybind_agent.so",
+    srcs = ["local_pybind_agent.cc"],
+    deps = [
+        "@pybind11//:pybind11",
+        ":chess_agent",
     ],
     copts = ["-fexceptions"],
     linkshared = 1,

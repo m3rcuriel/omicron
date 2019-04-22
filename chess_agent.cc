@@ -1,45 +1,82 @@
-#include <pybind11/pybind11.h>
-#include <random>
+#include "chess_agent.h"
 
-#include "chess.h"
+namespace chess {
 
-namespace py = pybind11;
+namespace agent {
 
-class RandomAgent {
- public:
-  RandomAgent() {}
+ChessAgent::ChessAgent() : particle_filter(
+        std::vector<Board>(
+            kNumParticles, Board::initial_board())) {}
 
-  void handle_game_start(py::object color, py::object board) {}
-  void handle_opponent_move_result(py::object captured_piece,
-                                   py::object captured_square) {}
-  py::object choose_sense(py::list possible_sense, py::list possible_moves,
-                          double seconds_left) {
-    return possible_sense[0];
-  }
-  void handle_sense_result(py::object sense_result) {}
-  py::object choose_move(py::list possible_moves, double seconds_left) {
-    std::uniform_int_distribution<int> move_generator(0, possible_moves.size());
-    return possible_moves[move_generator(generator)];
-  }
-
-  void handle_move_result(py::object requested_move, py::object taken_move,
-                          py::object reason, py::object captured_piece,
-                          py::object captured_square) {}
-  void handle_game_end(py::object winner_color, py::object reason) {}
-
- private:
-  std::default_random_engine generator;
-};
-
-PYBIND11_MODULE(chess_agent, m) {
-  py::class_<RandomAgent>(m, "RandomAgent")
-      .def(py::init<>())
-      .def("handle_game_start", &RandomAgent::handle_game_start)
-      .def("handle_opponent_move_result",
-           &RandomAgent::handle_opponent_move_result)
-      .def("choose_sense", &RandomAgent::choose_sense)
-      .def("handle_sense_result", &RandomAgent::handle_sense_result)
-      .def("choose_move", &RandomAgent::choose_move)
-      .def("handle_move_result", &RandomAgent::handle_move_result)
-      .def("handle_game_end", &RandomAgent::handle_game_end);
+void ChessAgent::handle_game_start(Color color, Board board) {
+    // Reinitialize the particle filter
+    particle_filter.reinitialize(board);
+    our_color = color;
 }
+
+void ChessAgent::handle_opponent_move_result(
+        Piece captured_piece,
+        Position captured_square) {
+    particle_filter.handle_opponent_move_result(
+            {captured_piece, captured_square}, opponent(our_color));
+}
+
+Position ChessAgent::choose_sense(
+        std::vector<Position> possible_sense,
+        std::vector<Move> possible_moves,
+        double seconds_left) {
+    std::array<std::array<double, 8>, 8> entropies;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            entropies[i][j] = particle_filter.square_entropy({i, j});
+        }
+    }
+
+    double max_entropy_sum = 0.0;
+    // Track the best top-left square
+    Position max_entropy_position = Position::NONE;
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            double total_entropy = 0;
+            for (int ii = 0; ii < 3; ii++) {
+                for (int jj = 0; jj < 3; jj++) {
+                    total_entropy += entropies[i + ii][j + jj];
+                }
+            }
+            if (total_entropy > max_entropy_sum) {
+                max_entropy_sum = total_entropy;
+                max_entropy_position = {i, j};
+            }
+        }
+    }
+
+    // Convert to center square
+    return {max_entropy_position.rank - 1, max_entropy_position.file - 1};
+}
+
+void ChessAgent::handle_sense_result(Observation sense_result) {
+    particle_filter.observe(sense_result, our_color);
+}
+
+Move ChessAgent::choose_move(
+        std::vector<Move> possible_moves, double seconds_left) {
+    OurUctNode root(
+            particle_filter.subsample(kNumParticlesRollout), our_color);
+    for (int i = 0; i < 1000; i++) {
+        root.simulate(kRolloutDepth);
+    }
+    return root.find_best_entry().our_move;
+}
+
+void ChessAgent::handle_move_result(
+        Move requested_move, Move taken_move,
+        std::string reason, Piece captured_piece,
+        Position captured_square) {
+    particle_filter.handle_move_result({taken_move, captured_piece}, our_color);
+}
+
+void ChessAgent::handle_game_end(Color winner_color, std::string reason) {}
+
+} // namespace agent
+
+} // namespace chess

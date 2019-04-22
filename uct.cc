@@ -18,7 +18,7 @@ std::mt19937& get_random_engine() {
 
 OurUctNode::OurUctNode(Board board, Color color)
         : OurUctNode(
-                StateDistribution(std::vector<Board>(kNumParticles, board)),
+                StateDistribution(std::vector<Board>(kNumParticlesRollout, board)),
                 color) {}
 
 OurUctNode::OurUctNode(StateDistribution state, Color color)
@@ -38,7 +38,7 @@ double calculate_ucb(double value, double n, double N) {
     if (n == 0) {
         return std::numeric_limits<double>::infinity();
     }
-    return value + 0.1 * 1 * std::sqrt(std::log(N) / n);
+    return value + kUcbConstant * std::sqrt(std::log(N) / n);
 }
 
 void OurUctNode::print_moves() {

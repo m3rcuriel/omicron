@@ -9,6 +9,8 @@ namespace chess {
 
 namespace agent {
 
+constexpr double kUcbConstant = 1;
+
 class OurUctNode;
 class OpponentUctNode;
 struct UcbEntry;
@@ -26,11 +28,11 @@ public:
 
     double get_value() const;
 
+    UcbEntry& find_best_entry();
+
 private:
     // The state distribution before our move.
     StateDistribution state;
-
-    UcbEntry& find_best_entry();
 
     Color color;
     std::vector<UcbEntry> ucb_table;

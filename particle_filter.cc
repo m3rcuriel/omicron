@@ -84,11 +84,122 @@ StateDistribution::update_random(Color opponent_color) const {
             std::get<2>(result[indices[capture]]).particles.push_back(b);
         }
     }
+    for (auto& it : result) {
+        std::vector<Board>& it_particles = std::get<2>(it).particles;
+        while (it_particles.size() < particles.size()) {
+            Board b = random_choice(it_particles);
+            while (random_float(0, 1) < 0.2) {
+                b = mutate_board(b, opponent_color);
+            }
+            it_particles.push_back(b);
+        }
+    }
     return result;
 }
 
 std::vector<Move> StateDistribution::get_available_actions(Color color) const {
     return particles[0].generate_moves(color);
+}
+
+static bool is_valid(const Board& b, Observation obs) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (b.get_piece(obs.origin.rank + i, obs.origin.file + j) != obs.obs[i][j]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void StateDistribution::observe(Observation obs, Color our_color) {
+    std::vector<Board> result_particles;
+    while (result_particles.size() < particles.size()) {
+        Board b = random_choice(particles);
+        while (random_float(0, 1) < 0.2) {
+            b = mutate_board(b, opponent(our_color));
+        }
+        if (is_valid(b, obs)) {
+            result_particles.push_back(b);
+        }
+    }
+    std::swap(particles, result_particles);
+}
+
+void StateDistribution::handle_move_result(MoveResult move_result, Color our_color) {
+    std::vector<Board> result_particles;
+    while (result_particles.size() < particles.size()) {
+        Board b = random_choice(particles);
+        while (random_float(0, 1) < 0.2) {
+            b = mutate_board(b, opponent(our_color));
+        }
+        Capture capture = b.apply_move(move_result.move);
+        if (capture == move_result.capture) {
+            result_particles.push_back(b);
+        }
+    }
+    std::swap(particles, result_particles);
+}
+
+Board StateDistribution::mutate_board(Board board, Color color) {
+    for (int i = 0; i < 10; i++) {
+        Board board_copy = board;
+        Capture capture = board.do_random_move(color);
+        if (capture == Capture::NONE) {
+            return board_copy;
+        }
+    }
+    return board;
+}
+
+StateDistribution StateDistribution::subsample(size_t num) {
+    std::vector<Board> result;
+    for (size_t i = 0; i < num; i++) {
+        result.push_back(random_choice(particles));
+    }
+    return StateDistribution(std::move(result));
+}
+
+void StateDistribution::reinitialize(Board board) {
+    std::vector<Board> new_particles(kNumParticles, board);
+    std::swap(new_particles, particles);
+}
+
+double StateDistribution::square_entropy(Position position) const {
+    std::map<Piece, int> piece_counts;
+    for (const Board& p : particles) {
+        Piece piece = p.get_piece(position.rank, position.file);
+        auto it = piece_counts.find(piece);
+        if (it == piece_counts.end()) {
+            piece_counts.insert({piece, 1});
+        } else {
+            it->second++;
+        }
+    }
+
+    double entropy = 0.0;
+    for (auto it : piece_counts) {
+        if (it.second > 0) {
+            double prob = static_cast<double>(it.second) / particles.size();
+            entropy -= prob * std::log2(prob);
+        }
+    }
+    return entropy;
+}
+
+void StateDistribution::handle_opponent_move_result(Capture capture, Color opponent_color) {
+    std::vector<Board> new_particles;
+    while (new_particles.size() < particles.size()) {
+        Board b = random_choice(particles);
+        while (random_float(0, 1) < 0.2) {
+            b = mutate_board(b, opponent_color);
+        }
+        Capture c = b.do_random_move(opponent_color);
+        if (c == capture) {
+            new_particles.push_back(b);
+        }
+    }
+    std::swap(particles, new_particles);
 }
 
 } // namespace agent

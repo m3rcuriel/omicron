@@ -10,3 +10,6 @@ report/*.log
 report/*.pdf
 report/*.synctex.gz
 report/*.fdb_latexmk
+
+.clwb/
+.idea/
