@@ -165,6 +165,36 @@ void StateDistribution::reinitialize(Board board) {
     std::swap(new_particles, particles);
 }
 
+void StateDistribution::entropy(std::array<std::array<double, 8>, 8>& out, Color our_color) const {
+    std::array<std::array<std::array<int, 8>, 8>, 7> piece_counts;
+
+    for (auto& b : piece_counts) {
+        for (auto& r : b) {
+            r.fill(0);
+        }
+    }
+
+    for (const Board& p : particles) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (p.get_piece(i, j).color != our_color) {
+                    int key = static_cast<int>(p.get_piece(i, j).type);
+                    piece_counts[key][i][j]++;
+                }
+            }
+        }
+    }
+
+    for (auto& count : piece_counts) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                double prob = static_cast<double>(count[i][j]) / particles.size();
+                out[i][j] -= prob * std::log2(prob);
+            }
+        }
+    }
+}
+
 double StateDistribution::square_entropy(Position position) const {
     std::map<Piece, int> piece_counts;
     for (const Board& p : particles) {

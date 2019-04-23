@@ -26,11 +26,11 @@ Position ChessAgent::choose_sense(
         std::vector<Move> possible_moves,
         double seconds_left) {
     std::array<std::array<double, 8>, 8> entropies;
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            entropies[i][j] = particle_filter.square_entropy({i, j});
-        }
+    for (auto& r : entropies) {
+        r.fill(0);
     }
+
+    particle_filter.entropy(entropies, our_color);
 
     double max_entropy_sum = 0.0;
     // Track the best top-left square
@@ -51,7 +51,7 @@ Position ChessAgent::choose_sense(
     }
 
     // Convert to center square
-    return {max_entropy_position.rank - 1, max_entropy_position.file - 1};
+    return {max_entropy_position.rank + 1, max_entropy_position.file + 1};
 }
 
 void ChessAgent::handle_sense_result(Observation sense_result) {

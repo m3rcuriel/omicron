@@ -57,6 +57,7 @@ public:
 
     void reinitialize(Board board);
 
+    void entropy(std::array<std::array<double, 8>, 8>& out, Color our_color) const;
     double square_entropy(Position position) const;
 
 private:
