@@ -22,8 +22,8 @@ import grpc
 
 from google.protobuf import empty_pb2
 
-import agent_pb2
-import agent_pb2_grpc
+import kstachowicz3_lmracek3_agent_pb2 as agent_pb2
+import kstachowicz3_lmracek3_agent_pb2_grpc as agent_pb2_grpc
 
 log.setLevel("INFO")
 FLAGS = flags.FLAGS

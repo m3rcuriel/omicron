@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package agent;
+
 import "google/protobuf/empty.proto";
 
 //
@@ -63,7 +65,6 @@ message Move {
 //
 message HandleGameStartRequest {
   Color color = 1;
-  // TODO(lmracek) add initial board state?
 }
 
 //
@@ -172,27 +173,20 @@ message HandleGameEndRequest {
 // agent.proto`
 //
 service RemoteAgent {
-  rpc HandleGameStart(HandleGameStartRequest) returns (google.protobuf.Empty) {
-  }
+  rpc HandleGameStart(HandleGameStartRequest) returns (google.protobuf.Empty) {}
 
   rpc HandleOpponentMove(HandleOpponentMoveRequest)
-      returns (google.protobuf.Empty) {
-  }
+      returns (google.protobuf.Empty) {}
 
-  rpc ChooseSense(ChooseSenseRequest) returns (ChooseSenseReply) {
-  }
+  rpc ChooseSense(ChooseSenseRequest) returns (ChooseSenseReply) {}
 
   rpc HandleSenseResult(HandleSenseResultRequest)
-      returns (google.protobuf.Empty) {
-  }
+      returns (google.protobuf.Empty) {}
 
-  rpc ChooseMove(ChooseMoveRequest) returns (ChooseMoveReply) {
-  }
+  rpc ChooseMove(ChooseMoveRequest) returns (ChooseMoveReply) {}
 
   rpc HandleMoveResult(HandleMoveResultRequest)
-      returns (google.protobuf.Empty) {
-  }
+      returns (google.protobuf.Empty) {}
 
-  rpc HandleGameEnd(HandleGameEndRequest) returns (google.protobuf.Empty) {
-  }
+  rpc HandleGameEnd(HandleGameEndRequest) returns (google.protobuf.Empty) {}
 }

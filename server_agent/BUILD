@@ -5,6 +5,7 @@ proto_library(
     name = "agent_proto",
     srcs = ["agent.proto"],
     deps = ["@com_google_protobuf//:empty_proto"],
+    visibility = ["//visibility:public"],
 )
 
 python_grpc_library(

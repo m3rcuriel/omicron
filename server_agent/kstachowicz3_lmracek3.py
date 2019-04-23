@@ -15,10 +15,10 @@ import grpc
 
 from player import Player
 
-import agent_pb2
-import agent_pb2_grpc
+import kstachowicz3_lmracek3_agent_pb2 as agent_pb2
+import kstachowicz3_lmracek3_agent_pb2_grpc as agent_pb2_grpc
 
-SERVER_IP = "localhost:50051"
+SERVER_IP = "omicron.leemracek.com:50051"
 SERVER_IP = os.getenv("SERVER_IP", SERVER_IP)
 """
 The IP for the ServerAgent to connect to. Note that this can be edited above in this file
@@ -81,8 +81,9 @@ def chess_piece_to_protobuf(piece):
     :return: agent_pb2.Piece equivalent to piece
     """
     piece_type = chess_piece_type_to_protobuf(piece.piece_type)
-    return agent_pb2.Piece(piece_type=piece_type,
+    piece = agent_pb2.Piece(piece_type=piece_type,
                            color=chess_color_to_protobuf(piece.color))
+    return piece
 
 def chess_piece_type_to_protobuf(piece_type):
     """
