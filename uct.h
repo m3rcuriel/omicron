@@ -78,6 +78,7 @@ struct UcbEntry {
 class OpponentUctNode {
 public:
     OpponentUctNode(const StateDistribution& state_prior, Color our_color);
+    ~OpponentUctNode();
 
     // Returns the reward from a single simulated instance.
     double simulate(int depth);

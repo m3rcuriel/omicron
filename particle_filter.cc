@@ -194,9 +194,6 @@ StateDistribution::update_random(Color opponent_color) const {
     std::vector<Board> &it_particles = std::get<2>(it).particles;
     while (it_particles.size() < particles.size()) {
       Board b = random_choice(it_particles);
-      while (random_float(0, 1) < 0.2) {
-        b = mutate_board(b, opponent_color);
-      }
       it_particles.push_back(b);
     }
   }
@@ -236,6 +233,7 @@ void StateDistribution::observe(Observation obs, Color our_color) {
 void StateDistribution::handle_move_result(Move taken_move, Color our_color,
                                            bool capture,
                                            Position captured_position) {
+  CheckValid(our_color);
   std::vector<Board> result_particles;
   while (result_particles.size() < particles.size()) {
     Board b = random_choice(particles);
@@ -261,13 +259,13 @@ void StateDistribution::handle_move_result(Move taken_move, Color our_color,
           {taken_move.to.rank, taken_move.to.rank});
     }
 
-    while (random_float(0, 1) < 0.2) {
-      b = mutate_board(b, opponent(our_color));
-    }
     MoveResult result = b.apply_move(taken_move);
-    result_particles.push_back(b);
+    if (result.move.to == taken_move.to) {
+        result_particles.push_back(b);
+    }
   }
   std::swap(particles, result_particles);
+  CheckValid(our_color);
 }
 
 bool StateDistribution::coerce_board(Board &board, Observation obs,
@@ -317,18 +315,6 @@ bool StateDistribution::coerce_board(Board &board, Observation obs,
   }
 
   return true;
-}
-
-Board StateDistribution::mutate_board(Board board, Color color) {
-  for (int i = 0; i < 10; i++) {
-    Board board_copy = board;
-    MoveResult result = board.do_random_move(color);
-    if (result.capture == Capture::NONE) {
-      return board_copy;
-    }
-  }
-
-  return board;
 }
 
 StateDistribution StateDistribution::subsample(size_t num) {
@@ -402,12 +388,10 @@ double StateDistribution::square_entropy(Position position) const {
 void StateDistribution::handle_opponent_move_result(bool captured_piece,
                                                     Position capture,
                                                     Color opponent_color) {
+  CheckValid(opponent(opponent_color));
   std::vector<Board> new_particles;
   while (new_particles.size() < particles.size()) {
     Board b = random_choice(particles);
-    while (random_float(0, 1) < 0.2) {
-      b = mutate_board(b, opponent_color);
-    }
     MoveResult result = b.do_random_move(opponent_color);
     if (captured_piece && result.capture.position == capture) {
       new_particles.push_back(b);
@@ -416,6 +400,7 @@ void StateDistribution::handle_opponent_move_result(bool captured_piece,
     }
   }
   std::swap(particles, new_particles);
+  CheckValid(opponent(opponent_color));
 }
 
 void StateDistribution::CheckValid(Color color) const {

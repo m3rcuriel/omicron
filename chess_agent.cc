@@ -57,7 +57,7 @@ void ChessAgent::handle_sense_result(Observation sense_result) {
 
 Move ChessAgent::choose_move(double seconds_left) {
   OurUctNode root(particle_filter.subsample(kNumParticlesRollout), our_color);
-  for (int i = 0; i < 1000; i++) {
+  for (int i = 0; i < 100; i++) {
     root.simulate(kRolloutDepth);
   }
   return root.find_best_entry().our_move;

@@ -91,7 +91,7 @@ UcbEntry::UcbEntry(const StateDistribution &state_prior, Move our_move,
     reward_heuristic += h * std::get<0>(d) * (1 - reward);
   }
 
-  reward += reward_heuristic / kNumParticlesRollout;
+  reward += reward_heuristic;
   count = 2;
 
   value = reward;
@@ -99,6 +99,8 @@ UcbEntry::UcbEntry(const StateDistribution &state_prior, Move our_move,
   child_weights =
       std::discrete_distribution<int>(weights.begin(), weights.end());
 }
+
+static int destruct_count = 0;
 
 double UcbEntry::simulate(int depth) {
   double reward = value;
@@ -134,6 +136,7 @@ OpponentUctNode::OpponentUctNode(const StateDistribution &state_prior,
     : state(state_prior) {
   int total_count = 0;
   std::vector<double> weights;
+  destruct_count++;
 
   for (auto t : state_prior.update_random(opponent(our_color))) {
     int count = std::get<0>(t);
@@ -163,6 +166,11 @@ double OpponentUctNode::simulate(int depth) {
   count++;
   value += (R - value) / count;
   return value;
+}
+
+OpponentUctNode::~OpponentUctNode() {
+  destruct_count--;
+  std::cout << "Destructed" << destruct_count << std::endl;
 }
 
 }  // namespace agent

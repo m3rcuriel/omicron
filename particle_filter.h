@@ -10,7 +10,7 @@ namespace chess {
 namespace agent {
 
 constexpr size_t kNumParticlesRollout = 100;
-constexpr size_t kNumParticles = 1000000;
+constexpr size_t kNumParticles = 10000;
 
 class StateDistribution {
  public:
@@ -55,13 +55,13 @@ class StateDistribution {
 
   void CheckValid(Color color) const;
 
+  std::vector<Board> particles;
+
  private:
   // Move one piece of the given color to some other free spot.
   static Board mutate_board(Board board, Color color);
 
   static bool coerce_board(Board &board, Observation obs, Color color);
-
-  std::vector<Board> particles;
 };
 
 }  // namespace agent

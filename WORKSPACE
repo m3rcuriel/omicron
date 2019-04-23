@@ -53,7 +53,7 @@ cc_library(
 
 new_local_repository(
     name = "python_local",
-    path = "/usr/include/python3.7m",
+    path = "/usr/include/python3.6",
     build_file = "BUILD.python_local",
 )
 
