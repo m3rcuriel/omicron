@@ -1,17 +1,14 @@
-#include <pybind11/pybind11.h>
 #include <random>
 
 #include "chess.h"
 #include "particle_filter.h"
 #include "uct.h"
 
-namespace py = pybind11;
-
 namespace chess {
 
 namespace agent {
 
-constexpr int kRolloutDepth = 10;
+constexpr int kRolloutDepth = 5;
 
 class ChessAgent {
  public:

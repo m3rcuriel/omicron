@@ -25,7 +25,10 @@ bool handle_board_piece_no_obs(Board &board, Piece board_piece,
       new_pos = {random_int(8), random_int(8)};
     }
 
-    if (board.get_piece(new_pos.rank, new_pos.file) == Piece::EMPTY) {
+    if (board.get_piece(new_pos.rank, new_pos.file) == Piece::EMPTY &&
+        !(new_pos.rank >= origin.rank && new_pos.rank < origin.rank + 3 &&
+          new_pos.file >= origin.file && new_pos.file < origin.file + 3 &&
+          new_pos.rank * 8 + new_pos.file <= obs_pos.rank * 8 + obs_pos.file)) {
       board.set_piece(new_pos.rank, new_pos.file, board_piece);
       board.set_piece(obs_pos.rank, obs_pos.file, Piece::EMPTY);
       return true;
@@ -41,6 +44,9 @@ bool handle_obs_piece_no_board(Board &board, Piece obs_piece, Position obs_pos,
     if (pos.rank >= origin.rank && pos.rank < origin.rank + 3 &&
         pos.file >= origin.file && pos.file < origin.file + 3 &&
         pos.rank * 8 + pos.file <= obs_pos.rank * 8 + obs_pos.file) {
+      if (board.get_piece(pos.rank, pos.file).type == PieceType::PAWN) {
+        //          res.push_back(pos);
+      }
       // this piece is invalid
     } else {
       res.push_back(pos);
@@ -51,10 +57,12 @@ bool handle_obs_piece_no_board(Board &board, Piece obs_piece, Position obs_pos,
   switch (obs_piece.type) {
     case PieceType::BISHOP: {
       if (res.size() == 0) {
+        ::std::cout << "Found no bishops" << std::endl;
         return false;
       } else if (res.size() == 1) {
         if ((res.at(0).rank + res.at(0).file) % 2 !=
             (obs_pos.rank + obs_pos.file) % 2) {
+          ::std::cout << "Looking for single bishop no match" << std::endl;
           return false;
         }
         selected = res.at(0);
@@ -69,18 +77,30 @@ bool handle_obs_piece_no_board(Board &board, Piece obs_piece, Position obs_pos,
         }
 
         if (!match) {
-          std::cout << "BISHOP NO MATCH" << std::endl;
+          //         std::cout << "BISHOP NO MATCH" << std::endl;
           return false;
         }
       }
       break;
     }
+    case PieceType::PAWN: {
+      if (res.size() == 0) {
+        return false;
+      }
+      for (Position pos : res) {
+        if (pos.file == obs_pos.file) {
+          selected = pos;
+          break;
+        }
+      }
+    }
     case PieceType::KNIGHT:
     case PieceType::ROOK:
     case PieceType::QUEEN:
-    case PieceType::KING:
-    case PieceType::PAWN: {
+    case PieceType::KING: {
       if (res.size() == 0) {
+        //        ::std::cout << "Couldn't find piece " << obs_piece <<
+        //        std::endl;
         return false;
       }
 
@@ -92,7 +112,7 @@ bool handle_obs_piece_no_board(Board &board, Piece obs_piece, Position obs_pos,
   board.set_piece(selected.rank, selected.file, Piece::EMPTY);
 
   return true;
-}
+}  // namespace
 }  // namespace
 
 Board StateDistribution::sample() const { return random_choice(particles); }
@@ -177,8 +197,9 @@ double StateDistribution::heuristic_value(Color color) const {
     for (int i = 0; i < 8; i++) {
       for (int j = 0; j < 8; j++) {
         Piece piece = b.get_piece(i, j);
-        piece_values += (piece_value(piece.type) + mirrored_rank(piece.color, i))
-            * color_value(piece.color, color);
+        piece_values +=
+            (piece_value(piece.type) + mirrored_rank(piece.color, i)) *
+            color_value(piece.color, color);
       }
     }
   }
@@ -228,10 +249,20 @@ static bool is_valid(const Board &b, Observation obs) {
 void StateDistribution::observe(Observation obs, Color our_color) {
   std::vector<Board> result_particles;
   while (result_particles.size() < particles.size()) {
+    //    ::std::cout << result_particles.size() << std::endl;
     Board b = random_choice(particles);
     if (coerce_board(b, obs, our_color)) {
-      assert(is_valid(b, obs));
-      result_particles.push_back(b);
+      if (is_valid(b, obs)) {
+        result_particles.push_back(b);
+      } else {
+#if 0
+        ::std::cout << "is not valid" << std::endl;
+#endif 0
+      }
+    } else {
+#if 0
+      ::std::cout << "could not coerce" << std::endl;
+#endif 0
     }
   }
   std::swap(particles, result_particles);
@@ -268,7 +299,7 @@ void StateDistribution::handle_move_result(Move taken_move, Color our_color,
 
     MoveResult result = b.apply_move(taken_move);
     if (result.move.to == taken_move.to) {
-        result_particles.push_back(b);
+      result_particles.push_back(b);
     }
   }
   std::swap(particles, result_particles);
@@ -293,15 +324,22 @@ bool StateDistribution::coerce_board(Board &board, Observation obs,
               bool res = handle_obs_piece_no_board(board, obs_piece, obs_pos,
                                                    obs.origin);
               if (!res) {
+                //               std::cout << "obs_piece_no_board" << std::endl;
                 return false;
               }
             } else {
               // the observation and board mismatch
               bool res = handle_board_piece_no_obs(board, board_piece, obs_pos,
                                                    obs.origin);
+              if (!res) {
+                //              std::cout << "temp handle_board_piece_no_obs" <<
+                //              std::endl;
+              }
               res &= handle_obs_piece_no_board(board, obs_piece, obs_pos,
                                                obs.origin);
               if (!res) {
+                //               std::cout << "temp handle_obs_piece_no_board"
+                //               << std::endl;
                 return false;
               }
             }
@@ -310,13 +348,14 @@ bool StateDistribution::coerce_board(Board &board, Observation obs,
             bool res = handle_board_piece_no_obs(board, board_piece, obs_pos,
                                                  obs.origin);
             if (!res) {
+              //              std::cout << "handle_board_piece_no_obs" <<
+              //              std::endl;
               return false;
             }
           }
         }
       } else {
         assert(obs_piece == board_piece);
-        return false;
       }
     }
   }
@@ -399,10 +438,17 @@ void StateDistribution::handle_opponent_move_result(bool captured_piece,
   std::vector<Board> new_particles;
   while (new_particles.size() < particles.size()) {
     Board b = random_choice(particles);
-    MoveResult result = b.do_random_move(opponent_color);
-    if (captured_piece && result.capture.position == capture) {
-      new_particles.push_back(b);
-    } else if (!captured_piece && result.capture == Capture::NONE) {
+    if (!captured_piece) {
+      MoveResult result = b.do_random_move(opponent_color);
+      if (result.capture == Capture::NONE) {
+        new_particles.push_back(b);
+      }
+    } else {
+      auto opponent_pieces = b.find_all_valid_color(opponent_color, capture);
+      Position chosen = random_choice(opponent_pieces);
+      Piece chosen_piece = b.get_piece(chosen.rank, chosen.file);
+      b.set_piece(chosen.rank, chosen.file, Piece::EMPTY);
+      b.set_piece(capture.rank, capture.file, chosen_piece);
       new_particles.push_back(b);
     }
   }

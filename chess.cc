@@ -144,10 +144,10 @@ Board Board::initial_board() {
   result.set_piece(1, 6, Piece{Color::WHITE, PieceType::PAWN});
   result.set_piece(1, 7, Piece{Color::WHITE, PieceType::PAWN});
 
-  result.can_castle_kingside_white = true;
-  result.can_castle_queenside_white = true;
-  result.can_castle_kingside_black = true;
-  result.can_castle_queenside_black = true;
+  result.can_castle_kingside_white = false;
+  result.can_castle_queenside_white = false;
+  result.can_castle_kingside_black = false;
+  result.can_castle_queenside_black = false;
 
   return result;
 }
@@ -275,13 +275,21 @@ MoveResult Board::apply_move_king(Move move) {
       move_piece(move.from, move.to);
       move_piece({move.from.rank, 0}, {move.to.rank, 3});
     }
-    can_castle_kingside = can_castle_queenside = false;
+    if (color == Color::WHITE) {
+      can_castle_kingside_white = can_castle_queenside_white = false;
+    } else {
+      can_castle_kingside_black = can_castle_queenside_black = false;
+    }
     return {move, Capture::NONE};
   } else {
     assert(std::max(abs(move.to.rank - move.from.rank),
                     abs(move.to.file - move.from.file)) == 1);
     assert(occupation(move.to.rank, move.to.file) != color);
-    can_castle_kingside = can_castle_queenside = false;
+    if (color == Color::WHITE) {
+      can_castle_kingside_white = can_castle_queenside_white = false;
+    } else {
+      can_castle_kingside_black = can_castle_queenside_black = false;
+    }
     return move_piece(move.from, move.to);
   }
 }
@@ -300,9 +308,17 @@ MoveResult Board::apply_move_rook(Move move) {
       (color == Color::WHITE ? can_castle_queenside_white
                              : can_castle_queenside_black);
   if (move.from.file == 7 && mirrored_from_rank == 0) {
-    can_castle_kingside = false;
+    if (color == Color::WHITE) {
+      can_castle_kingside_white = false;
+    } else {
+      can_castle_kingside_black = false;
+    }
   } else if (move.from.file == 0 && mirrored_from_rank == 0) {
-    can_castle_queenside = false;
+    if (color == Color::WHITE) {
+      can_castle_queenside_white = false;
+    } else {
+      can_castle_queenside_black = false;
+    }
   }
   return apply_move_linear(move.from, move.to, true);
 }

@@ -36,24 +36,24 @@ git_repository(
     remote = "https://github.com/google/googletest",
 )
 
-new_git_repository(
-    name = "pybind11",
-    tag = "v2.2.4",
-    remote = "https://github.com/pybind/pybind11",
-    build_file_content = """
-cc_library(
-    name = "pybind11",
-    hdrs = glob(["include/**/*.h"]),
-    includes = ["include"],
-    deps = ["@python_local//:python_config"],
-    visibility = ["//visibility:public"],
-)
-"""
-)
+#new_git_repository(
+#    name = "pybind11",
+#    tag = "v2.2.4",
+#    remote = "https://github.com/pybind/pybind11",
+#    build_file_content = """
+#cc_library(
+#    name = "pybind11",
+#    hdrs = glob(["include/**/*.h"]),
+#    includes = ["include"],
+#    deps = ["@python_local//:python_config"],
+#    visibility = ["//visibility:public"],
+#)
+#"""
+#)
 
 new_local_repository(
     name = "python_local",
-    path = "/usr/include/python3.6",
+    path = "/usr/include/python3.7m",
     build_file = "BUILD.python_local",
 )
 
@@ -106,11 +106,11 @@ load("@grpc_py_deps//:requirements.bzl", grpc_pip_install="pip_install")
 
 grpc_pip_install()
 
-pip_import(
-    name = "recon_deps",
-    requirements = "//recon:requirements.txt",
-)
-
-load("@recon_deps//:requirements.bzl", recon_pip_install="pip_install")
-
-recon_pip_install()
+#pip_import(
+#    name = "recon_deps",
+#    requirements = "//recon:requirements.txt",
+#)
+#
+#load("@recon_deps//:requirements.bzl", recon_pip_install="pip_install")
+#
+#recon_pip_install()

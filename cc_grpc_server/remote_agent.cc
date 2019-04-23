@@ -146,6 +146,7 @@ class ChessAgentImpl final : public RemoteAgent::Service {
 
     ::std::vector<agent::SenseResult> raw_obs(request->result().begin(),
                                               request->result().end());
+    ::std::cout << std::endl;
     std::sort(
         raw_obs.begin(), raw_obs.end(),
         [](const agent::SenseResult &first, const agent::SenseResult &second) {
@@ -160,7 +161,7 @@ class ChessAgentImpl final : public RemoteAgent::Service {
     for (size_t i = 0; i < 3; ++i) {
       for (size_t j = 0; j < 3; ++j) {
         if (raw_obs[j * 3 + i].has_piece()) {
-          obs.obs[j][i] =
+          obs.obs[i][j] =
               ProtobufPieceToChess(raw_obs[i * 3 + j].piece());  // probably
         } else {
           obs.obs[j][i] = chess::Piece::EMPTY;

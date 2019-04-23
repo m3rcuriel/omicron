@@ -1,5 +1,4 @@
 load("@build_stack_rules_proto//python:python_grpc_library.bzl", "python_grpc_library")
-load("@recon_deps//:requirements.bzl", "requirement")
 
 proto_library(
     name = "agent_proto",
@@ -34,15 +33,15 @@ genrule(
     cmd = "cat $(location server_agent.py) | ./$(location :convert_to_bazel) > $(location server_agent_bz.py)",
 )
 
-py_library(
-    name = "server_agent",
-    srcs = [
-        "server_agent_bz.py",
-    ],
-    deps = [
-        ":agent_python_proto",
-        "//recon:player",
-        requirement("python-chess"),
-    ],
-    visibility = ["//visibility:public"],
-)
+#py_library(
+#    name = "server_agent",
+#    srcs = [
+#        "server_agent_bz.py",
+#    ],
+#    deps = [
+#        ":agent_python_proto",
+#        "//recon:player",
+#        requirement("python-chess"),
+#    ],
+#    visibility = ["//visibility:public"],
+#)
