@@ -321,7 +321,7 @@ void StateDistribution::handle_move_result(Move taken_move, Color our_color,
           {taken_move.to.rank, taken_move.to.rank});
     }
 
-    MoveResult result = b.apply_move(taken_move);
+    MoveResult result = b.move_piece(taken_move.from, taken_move.to);
     if (result.move.to == taken_move.to) {
       result_particles.push_back(b);
     }

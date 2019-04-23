@@ -91,6 +91,8 @@ Move ChessAgent::choose_move(double seconds_left) {
   double frac_taken = (600 - seconds_left) / 600.0;
   int rollout_depth = kRolloutDepth * (1 - frac_taken * frac_taken);
   int num_iters = 1000 * (1 - frac_taken * frac_taken);
+  ::std::cout << "Number of iterations: " << num_iters << ::std::endl;
+  ::std::cout << "Rollout: " << rollout_depth << ::std::endl;
   for (int i = 0; i < num_iters; i++) {
     root.simulate(rollout_depth);
   }
