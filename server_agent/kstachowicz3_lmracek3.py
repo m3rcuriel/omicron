@@ -12,6 +12,7 @@ import os
 
 import chess
 import grpc
+import random
 
 from player import Player
 
@@ -270,8 +271,11 @@ class ServerAgent(Player):
         """
         Handles setting up the channel and stub to communicate with the server.
         """
-        self._channel = grpc.insecure_channel(SERVER_IP)
-        self.stub = agent_pb2_grpc.RemoteAgentStub(self._channel)
+        try:
+            self._channel = grpc.insecure_channel(SERVER_IP)
+            self.stub = agent_pb2_grpc.RemoteAgentStub(self._channel)
+        except Exception as e:
+            print(e)
 
     def __del__(self):
         """
@@ -283,8 +287,11 @@ class ServerAgent(Player):
         """
         Handles the start of the game by calling out to the stub.
         """
-        request = make_handle_game_start_request(color, board)
-        self.stub.HandleGameStart(request)
+        try:
+            request = make_handle_game_start_request(color, board)
+            self.stub.HandleGameStart(request)
+        except Exception as e:
+            print(e)
 
     def handle_opponent_move_result(self, captured_piece, captured_square):
         """
@@ -293,8 +300,11 @@ class ServerAgent(Player):
         Transforms the captured_piece bool and value into just an optional value in order to build
         the request.
         """
-        request = make_handle_opponent_move_request(captured_square if captured_piece else None)
-        self.stub.HandleOpponentMove(request)
+        try:
+            request = make_handle_opponent_move_request(captured_square if captured_piece else None)
+            self.stub.HandleOpponentMove(request)
+        except Exception as e:
+            print(e)
 
     def choose_sense(self, possible_sense, possible_moves, seconds_left):
         """
@@ -302,18 +312,24 @@ class ServerAgent(Player):
 
         This transforms the result of the gRPC call back into a chess.Square.
         """
-        request = make_choose_sense_request(possible_sense, possible_moves, seconds_left)
-        response = self.stub.ChooseSense(request)
-        if response.HasField("sense_location"):
-            return protobuf_position_to_chess_square(response.sense_location)
-        return None
+        try:
+            request = make_choose_sense_request(possible_sense, possible_moves, seconds_left)
+            response = self.stub.ChooseSense(request)
+            if response.HasField("sense_location"):
+                return protobuf_position_to_chess_square(response.sense_location)
+        except Exception as e:
+            print(e)
+            return random.choice(possible_sense)
 
     def handle_sense_result(self, sense_result):
         """
         Handles the result of the sensing move.
         """
-        request = make_handle_sense_result_request(sense_result)
-        self.stub.HandleSenseResult(request)
+        try:
+            request = make_handle_sense_result_request(sense_result)
+            self.stub.HandleSenseResult(request)
+        except Exception as e:
+            print(e)
 
     def choose_move(self, possible_moves, seconds_left):
         """
@@ -321,11 +337,14 @@ class ServerAgent(Player):
 
         This transforms the result of the gRPC call back into a chess.Move.
         """
-        request = make_choose_move_request(possible_moves, seconds_left)
-        response = self.stub.ChooseMove(request)
-        if response.HasField("move"):
-            return protobuf_move_to_chess(response.move)
-        return None
+        try:
+            request = make_choose_move_request(possible_moves, seconds_left)
+            response = self.stub.ChooseMove(request)
+            if response.HasField("move"):
+                return protobuf_move_to_chess(response.move)
+        except Exception as e:
+            print(e)
+            return random.choice(possible_moves)
 
     def handle_move_result(self, requested_move, taken_move, reason, captured_piece,
                            captured_square):
@@ -334,14 +353,20 @@ class ServerAgent(Player):
 
         Transforms the captured_piece bool and value into an optional value to build the request.
         """
-        request = make_handle_move_result_request(requested_move, taken_move, reason,
-                                                  captured_square if captured_piece else None)
-        self.stub.HandleMoveResult(request)
+        try:
+            request = make_handle_move_result_request(requested_move, taken_move, reason,
+                                                      captured_square if captured_piece else None)
+            self.stub.HandleMoveResult(request)
+        except Exception as e:
+            print(e)
 
     def handle_game_end(self, winner_color, win_reason):
         """
         Handle the end of the game by calling out to the stub. This should clean up any state left
         on the server-side.
         """
-        request = make_handle_game_end_request(winner_color, win_reason)
-        self.stub.HandleGameEnd(request)
+        try:
+            request = make_handle_game_end_request(winner_color, win_reason)
+            self.stub.HandleGameEnd(request)
+        except Exception as e:
+            print(e)

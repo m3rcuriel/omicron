@@ -34,6 +34,9 @@ class ChessAgent {
   std::default_random_engine generator;
   StateDistribution particle_filter;
   Color our_color;
+
+  // -1 for aborted.
+  int opening_state = 0;
 };
 
 }  // namespace agent

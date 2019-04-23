@@ -70,6 +70,8 @@ chess::Piece ProtobufPieceToChess(agent::Piece piece) {
       break;
     default:
       chess_piece.type = chess::PieceType::EMPTY;
+      chess_piece.color = chess::Color::EMPTY;
+      return chess_piece;
   }
 
   chess_piece.color = ProtobufColorToChess(piece.color());
