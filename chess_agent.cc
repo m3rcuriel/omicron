@@ -25,7 +25,6 @@ ChessAgent::ChessAgent()
 void ChessAgent::handle_game_start(Color color) {
   // Reinitialize the particle filter
   our_color = color;
-  opening_state = 0;
 }
 
 void ChessAgent::handle_opponent_move_result(bool captured_piece,
@@ -71,14 +70,14 @@ void ChessAgent::handle_sense_result(Observation sense_result) {
 }
 
 Move ChessAgent::choose_move(double seconds_left) {
-  auto& starter_moves = our_color == Color::WHITE
-      ? white_starting_moves : black_starting_moves;
+  auto &starter_moves =
+      our_color == Color::WHITE ? white_starting_moves : black_starting_moves;
   std::cout << opening_state << ", " << starter_moves.size() << std::endl;
   if (opening_state != -1 && opening_state < starter_moves.size()) {
     auto starter_move = starter_moves[opening_state];
-    if (particle_filter.particles[0].get_piece(
-                starter_move.first.from.rank, starter_move.first.from.file)
-            == starter_move.second) {
+    if (particle_filter.particles[0].get_piece(starter_move.first.from.rank,
+                                               starter_move.first.from.file) ==
+        starter_move.second) {
       opening_state++;
       std::cout << "OPENING MOVE " << opening_state << std::endl;
       return starter_move.first;
@@ -100,12 +99,12 @@ Move ChessAgent::choose_move(double seconds_left) {
 
 void ChessAgent::handle_move_result(Move taken_move, bool capture,
                                     Position captured_square) {
-  auto& starter_moves = our_color == Color::WHITE
-      ? white_starting_moves : black_starting_moves;
-  if (opening_state > 0 && opening_state - 1 < starter_moves.size()
-          && taken_move.to != starter_moves[opening_state - 1].first.to) {
-      std::cout << "OPENING CANCELLED 2" << std::endl;
-      opening_state = -1;
+  auto &starter_moves =
+      our_color == Color::WHITE ? white_starting_moves : black_starting_moves;
+  if (opening_state > 0 && opening_state - 1 < starter_moves.size() &&
+      taken_move.to != starter_moves[opening_state - 1].first.to) {
+    std::cout << "OPENING CANCELLED 2" << std::endl;
+    opening_state = -1;
   }
 
   particle_filter.handle_move_result(taken_move, our_color, capture,

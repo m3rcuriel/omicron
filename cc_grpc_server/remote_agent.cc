@@ -94,7 +94,8 @@ class ChessAgentImpl final : public RemoteAgent::Service {
                          const HandleGameStartRequest *request,
                          google::protobuf::Empty *reply) override {
     ::std::cout << "Handling game start" << std::endl;
-    agent_.handle_game_start(ProtobufColorToChess(request->color()));
+    agent_.reset(new chess::agent::ChessAgent());
+    agent_->handle_game_start(ProtobufColorToChess(request->color()));
 
     return Status::OK;
   }
@@ -107,8 +108,8 @@ class ChessAgentImpl final : public RemoteAgent::Service {
         request->has_captured_square()
             ? ProtobufPositionToChess(request->captured_square())
             : chess::Position(0, 0);
-    agent_.handle_opponent_move_result(request->has_captured_square(),
-                                       captured_position);
+    agent_->handle_opponent_move_result(request->has_captured_square(),
+                                        captured_position);
 
     return Status::OK;
   }
@@ -131,8 +132,8 @@ class ChessAgentImpl final : public RemoteAgent::Service {
         possible_moves.begin(),
         [](const agent::Move &move) { return ProtobufMoveToChess(move); });
 
-    auto sense_location = agent_.choose_sense(possible_sense, possible_moves,
-                                              request->seconds_left());
+    auto sense_location = agent_->choose_sense(possible_sense, possible_moves,
+                                               request->seconds_left());
 
     std::cout << "Sensing: " << sense_location << std::endl;
 
@@ -166,14 +167,14 @@ class ChessAgentImpl final : public RemoteAgent::Service {
           obs.obs[i][j] =
               ProtobufPieceToChess(raw_obs[i * 3 + j].piece());  // probably
         } else {
-          obs.obs[j][i] = chess::Piece::EMPTY;
+          obs.obs[i][j] = chess::Piece::EMPTY;
         }
       }
     }
 
     obs.origin = ProtobufPositionToChess(raw_obs[0].square());
 
-    agent_.handle_sense_result(obs);
+    agent_->handle_sense_result(obs);
 
     std::cout << "Finished handle sense result" << std::endl;
 
@@ -183,7 +184,7 @@ class ChessAgentImpl final : public RemoteAgent::Service {
   Status ChooseMove(ServerContext *context, const ChooseMoveRequest *request,
                     ChooseMoveReply *reply) {
     ::std::cout << "Handling choose move" << std::endl;
-    chess::Move move = agent_.choose_move(request->seconds_left());
+    chess::Move move = agent_->choose_move(request->seconds_left());
 
     ChessMoveToProtobuf(move, reply->mutable_move());
 
@@ -199,10 +200,10 @@ class ChessAgentImpl final : public RemoteAgent::Service {
       chess::Move requested_move =
           ProtobufMoveToChess(request->requested_move());
       requested_move.to = requested_move.from;
-      agent_.handle_move_result(requested_move, false, requested_move.to);
+      agent_->handle_move_result(requested_move, false, requested_move.to);
     } else {
       chess::Move taken_move = ProtobufMoveToChess(request->taken_move());
-      agent_.handle_move_result(
+      agent_->handle_move_result(
           taken_move, request->has_captured_position(),
           ProtobufPositionToChess(request->captured_position()));
     }
@@ -213,11 +214,15 @@ class ChessAgentImpl final : public RemoteAgent::Service {
                        const HandleGameEndRequest *request,
                        google::protobuf::Empty *reply) {
     ::std::cout << "Handling game end" << std::endl;
+    agent_->handle_game_end(ProtobufColorToChess(request->winner_color()),
+                            request->win_reason());
+    agent_.reset(new chess::agent::ChessAgent());
     return Status::OK;
   }
 
  private:
-  chess::agent::ChessAgent agent_;
+  ::std::unique_ptr<chess::agent::ChessAgent> agent_{
+      new chess::agent::ChessAgent()};
 };
 
 void RunServer() {

@@ -8,7 +8,7 @@ namespace chess {
 
 namespace agent {
 
-constexpr int kRolloutDepth = 5;
+constexpr int kRolloutDepth = 10;
 
 class ChessAgent {
  public:
