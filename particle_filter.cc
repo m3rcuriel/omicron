@@ -69,6 +69,7 @@ bool handle_obs_piece_no_board(Board &board, Piece obs_piece, Position obs_pos,
         }
 
         if (!match) {
+          std::cout << "BISHOP NO MATCH" << std::endl;
           return false;
         }
       }
@@ -161,6 +162,14 @@ int color_value(Color color, Color ours) {
   }
 }
 
+int mirrored_rank(Color color, int rank) {
+  if (color == Color::WHITE) {
+    return rank;
+  } else {
+    return 7 - rank;
+  }
+}
+
 double StateDistribution::heuristic_value(Color color) const {
   double piece_values = 0;
   for (int c = 0; c < 10; c++) {
@@ -168,8 +177,8 @@ double StateDistribution::heuristic_value(Color color) const {
     for (int i = 0; i < 8; i++) {
       for (int j = 0; j < 8; j++) {
         Piece piece = b.get_piece(i, j);
-        piece_values +=
-            piece_value(piece.type) * color_value(piece.color, color);
+        piece_values += (piece_value(piece.type) + mirrored_rank(piece.color, i))
+            * color_value(piece.color, color);
       }
     }
   }
@@ -218,13 +227,11 @@ static bool is_valid(const Board &b, Observation obs) {
 
 void StateDistribution::observe(Observation obs, Color our_color) {
   std::vector<Board> result_particles;
-  size_t i = 0;
   while (result_particles.size() < particles.size()) {
     Board b = random_choice(particles);
     if (coerce_board(b, obs, our_color)) {
-      if (is_valid(b, obs)) {
-        result_particles.push_back(b);
-      }
+      assert(is_valid(b, obs));
+      result_particles.push_back(b);
     }
   }
   std::swap(particles, result_particles);
