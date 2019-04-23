@@ -19,11 +19,6 @@ struct Observation {
     Position origin;
 };
 
-struct MoveResult {
-    Move move;
-    Capture capture;
-};
-
 class StateDistribution {
 public:
     StateDistribution(std::vector<Board>&& boards) : particles(std::move(boards)) {}
@@ -33,9 +28,10 @@ public:
     Board sample() const;
 
     // Update the board and return the fraction of games won by that move.
-    double update(Move move);
+    std::tuple<double, std::vector<std::tuple<int, Move, StateDistribution>>>
+        update(Move move, Color our_color) const;
 
-    double heuristic_value(Color color);
+    double heuristic_value(Color color) const;
 
     // Move each particle randomly, splitting into equivalence classes by captured piece
     // Returns [(weight, capture, distribution)]
@@ -57,6 +53,7 @@ public:
 
     void reinitialize(Board board);
 
+    void entropy(std::array<std::array<double, 8>, 8>& out, Color our_color) const;
     double square_entropy(Position position) const;
 
 private:

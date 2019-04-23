@@ -115,6 +115,23 @@ struct Capture {
 // Target is (-1, -1) unless capturing.
 struct Move {
     Position from, to;
+
+    bool operator<(const Move& other) const {
+        if (from < other.from) {
+            return true;
+        } else if (other.from < from) {
+            return false;
+        } else {
+            return to < other.to;
+        }
+    }
+};
+
+struct MoveResult {
+    Move move;
+    Capture capture;
+
+    static MoveResult WASTED;
 };
 
 inline std::ostream& operator<<(std::ostream& out, Move m) {
@@ -137,7 +154,7 @@ public:
     std::vector<Move> generate_moves(Color turn) const;
 
     // Apply a move and return the captured piece, if any
-    Capture apply_move(Move move);
+    MoveResult apply_move(Move move);
 
     static Board initial_board();
 
@@ -146,13 +163,13 @@ public:
     Piece get_piece(int i, int j) const;
     void set_piece(int i, int j, Piece piece);
 
-    Capture do_random_move(Color color);
+    MoveResult do_random_move(Color color);
 
     bool get_castle_kingside_white() const { return can_castle_kingside_white; }
     bool get_castle_queenside_white() const { return can_castle_queenside_white; }
     bool get_castle_kingside_black() const { return can_castle_kingside_black; }
     bool get_castle_queenside_black() const { return can_castle_queenside_black; }
-    Capture move_piece(Position from, Position to);
+    MoveResult move_piece(Position from, Position to);
 
 private:
     // Collect the valid moves for a given piece into the vector at `moves`.
@@ -166,14 +183,14 @@ private:
     void collect_moves_linear(int rank, int file, int dr, int df, Color color, std::vector<Move> *moves, int d = 8) const;
 
     // Apply a move for a specific piece type.
-    Capture apply_move_pawn(Move move);
-    Capture apply_move_queen(Move move);
-    Capture apply_move_king(Move move);
-    Capture apply_move_rook(Move move);
-    Capture apply_move_knight(Move move);
-    Capture apply_move_bishop(Move move);
+    MoveResult apply_move_pawn(Move move);
+    MoveResult apply_move_queen(Move move);
+    MoveResult apply_move_king(Move move);
+    MoveResult apply_move_rook(Move move);
+    MoveResult apply_move_knight(Move move);
+    MoveResult apply_move_bishop(Move move);
 
-    Capture apply_move_linear(Position from, Position to, bool allow_capture);
+    MoveResult apply_move_linear(Position from, Position to, bool allow_capture);
 
     Color occupation(int i, int j) const;
 

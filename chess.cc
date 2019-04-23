@@ -8,6 +8,7 @@ namespace chess {
 Piece Piece::EMPTY{Color::EMPTY, PieceType::EMPTY};
 Position Position::NONE{-1, -1};
 Capture Capture::NONE{Piece::EMPTY, Position::NONE};
+MoveResult MoveResult::WASTED{{Position::NONE, Position::NONE}, Capture::NONE};
 
 namespace {
 
@@ -141,7 +142,7 @@ void Board::debug_print(std::ostream& out) const {
     }
 }
 
-Capture Board::apply_move(Move move) {
+MoveResult Board::apply_move(Move move) {
     if (move.from == move.to) {
         std::cout << "Move failed " << move << std::endl;
         assert(false);
@@ -161,11 +162,10 @@ Capture Board::apply_move(Move move) {
             return apply_move_knight(move);
         default:
             assert(false);
-            return Capture::NONE;
     }
 }
 
-Capture Board::apply_move_pawn(Move move) {
+MoveResult Board::apply_move_pawn(Move move) {
     Piece piece = get_piece(move.from.rank, move.from.file);
     Color color = piece.color;
     int mirrored_from_rank = mirrored_rank(color, move.from.rank),
@@ -181,7 +181,7 @@ Capture Board::apply_move_pawn(Move move) {
                 move.from.file
             };
         }
-        return Capture::NONE;
+        return {move, Capture::NONE};
     } else {
         assert(abs(move.to.file - move.from.file) == 1);
         assert(mirrored_to_rank == mirrored_from_rank + 1);
@@ -193,26 +193,27 @@ Capture Board::apply_move_pawn(Move move) {
             assert(occupation(move.to.rank, move.to.file) != color);
             int captured_target_rank = mirrored_rank(color, mirrored_to_rank - 1);
             int captured_target_file = en_passant_target.file;
-            Capture capture = move_piece(move.from, move.to);
-            assert(capture == Capture::NONE);
+            MoveResult result = move_piece(move.from, move.to);
+            assert(result.capture == Capture::NONE);
             assert(captured_target_rank);
             assert(0 <= captured_target_rank && captured_target_rank < 8);
             assert(0 <= captured_target_file && captured_target_file < 8);
-            std::swap(board[captured_target_rank][captured_target_file], capture.piece);
-            capture.position = {captured_target_rank, captured_target_file};
-            return capture;
+            std::swap(board[captured_target_rank][captured_target_file], result.capture.piece);
+            result.capture.position = {captured_target_rank, captured_target_file};
+            result.move = move;
+            return result;
         } else {
             // Wasted move
-            return Capture::NONE;
+            return MoveResult::WASTED;
         }
     }
 }
 
-Capture Board::apply_move_queen(Move move) {
+MoveResult Board::apply_move_queen(Move move) {
     return apply_move_linear(move.from, move.to, true);
 }
 
-Capture Board::apply_move_king(Move move) {
+MoveResult Board::apply_move_king(Move move) {
     Color color = get_piece(move.from.rank, move.from.file).color;
 
     int mirrored_from_rank = mirrored_rank(color, move.from.rank),
@@ -229,7 +230,7 @@ Capture Board::apply_move_king(Move move) {
             if (occupation(move.from.rank, 6) != Color::EMPTY
                     || occupation(move.from.rank, 5) != Color::EMPTY) {
                 // We can't take this move, so don't revoke castling ability.
-                return Capture::NONE;
+                return MoveResult::WASTED;
             }
             move_piece(move.from, move.to);
             move_piece({move.from.rank, 7}, {move.to.rank, 5});
@@ -240,13 +241,13 @@ Capture Board::apply_move_king(Move move) {
                     || occupation(move.from.rank, 2) != Color::EMPTY
                     || occupation(move.from.rank, 3) != Color::EMPTY) {
                 // Same situation as above: no move taken
-                return Capture::NONE;
+                return MoveResult::WASTED;
             }
             move_piece(move.from, move.to);
             move_piece({move.from.rank, 0}, {move.to.rank, 3});
         }
         can_castle_kingside = can_castle_queenside = false;
-        return Capture::NONE;
+        return {move, Capture::NONE};
     } else {
         assert(std::max(
                     abs(move.to.rank - move.from.rank),
@@ -257,7 +258,7 @@ Capture Board::apply_move_king(Move move) {
     }
 }
 
-Capture Board::apply_move_rook(Move move) {
+MoveResult Board::apply_move_rook(Move move) {
     Piece piece = get_piece(move.from.rank, move.from.file);
     Color color = piece.color;
 
@@ -273,7 +274,7 @@ Capture Board::apply_move_rook(Move move) {
     return apply_move_linear(move.from, move.to, true);
 }
 
-Capture Board::apply_move_knight(Move move) {
+MoveResult Board::apply_move_knight(Move move) {
     Piece piece = get_piece(move.from.rank, move.from.file);
     Color color = piece.color;
 
@@ -283,12 +284,12 @@ Capture Board::apply_move_knight(Move move) {
     return move_piece(move.from, move.to);
 }
 
-Capture Board::apply_move_bishop(Move move) {
+MoveResult Board::apply_move_bishop(Move move) {
     assert(abs(move.to.rank - move.from.rank) == abs(move.to.file - move.from.file));
     return apply_move_linear(move.from, move.to, true);
 }
 
-Capture Board::apply_move_linear(Position from, Position to, bool allow_capture) {
+MoveResult Board::apply_move_linear(Position from, Position to, bool allow_capture) {
     Piece piece = get_piece(from.rank, from.file);
     Color color = piece.color;
 
@@ -313,15 +314,15 @@ Capture Board::apply_move_linear(Position from, Position to, bool allow_capture)
     return move_piece(from, Position{rank, file});
 }
 
-Capture Board::move_piece(Position from, Position to) {
+MoveResult Board::move_piece(Position from, Position to) {
     Piece captured = Piece::EMPTY;
     std::swap(board[to.rank][to.file], board[from.rank][from.file]);
     std::swap(board[from.rank][from.file], captured);
     en_passant_target = {-1, -1};
     if (captured != Piece::EMPTY) {
-        return Capture{captured, to};
+        return {{from, to}, Capture{captured, to}};
     } else {
-        return Capture::NONE;
+        return {{from, to}, Capture::NONE};
     }
 }
 
@@ -484,7 +485,7 @@ void Board::collect_moves_linear(
     }
 }
 
-Capture Board::do_random_move(Color color) {
+MoveResult Board::do_random_move(Color color) {
     int num_pieces = 0;
     std::array<Position, 16> positions;
     for (int i = 0; i < 8; i++) {

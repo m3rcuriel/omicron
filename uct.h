@@ -44,21 +44,24 @@ private:
 // Corresponds to T(ha).
 struct UcbEntry {
     UcbEntry(const StateDistribution& state_prior, Move our_move, Color our_color);
+    ~UcbEntry();
+
+    double simulate(int depth);
+
+    void generate();
 
     // Create the opponent nodes.
-    void generate();
+    // void generate();
 
     Color our_color;
 
     // The corresponding move
     Move our_move;
 
-    // The opponent's UCT node is initialized in a lazy fashion
+    // The opponent's UCT nodes are initialized in a lazy fashion
     // to save on RAM usage.
-    std::unique_ptr<OpponentUctNode> node;
-
-    // The state distribution after our move.
-    StateDistribution state;
+    std::vector<std::pair<OpponentUctNode*, StateDistribution>> children;
+    std::discrete_distribution<int> child_weights;
 
     // The number of times this entry has been taken.
     int count = 0;

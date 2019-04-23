@@ -9,23 +9,40 @@ Board StateDistribution::sample() const {
     return random_choice(particles);
 }
 
-double StateDistribution::update(Move move) {
+std::tuple<double, std::vector<std::tuple<int, Move, StateDistribution>>>
+StateDistribution::update(Move move, Color our_color) const {
     int num_wins = 0;
     int initial_size = particles.size();
 
-    for (size_t i = 0; i < particles.size() - num_wins;) {
-        Board& b = particles[i];
-        Capture cap = b.apply_move(move);
-        if (cap.piece.type == PieceType::KING) {
+    std::vector<std::tuple<int, Move, StateDistribution>> result;
+    std::map<Move, int> indices;
+    for (Board b : particles) {
+        MoveResult move_result = b.apply_move(move);
+
+        if (move_result.capture.piece.type == PieceType::KING) {
             num_wins++;
-            std::swap(particles[i], particles[particles.size() - num_wins]);
+        }
+
+        if (indices.find(move_result.move) == indices.end()) {
+            indices[move_result.move] = result.size();
+            result.push_back(std::make_tuple(1, move_result.move, StateDistribution({b})));
         } else {
-            i++;
+            std::get<2>(result[indices[move_result.move]]).particles.push_back(b);
         }
     }
 
-    particles.erase(particles.end() - num_wins, particles.end());
-    return ((double) num_wins) / initial_size;
+    for (auto& it : result) {
+        std::vector<Board>& it_particles = std::get<2>(it).particles;
+        while (it_particles.size() < particles.size()) {
+            Board b = random_choice(it_particles);
+            while (random_float(0, 1) < 0.2) {
+                b = mutate_board(b, our_color);
+            }
+            it_particles.push_back(b);
+        }
+    }
+
+    return std::make_tuple(((double) num_wins) / initial_size, result);
 }
 
 int piece_value(PieceType piece) {
@@ -57,7 +74,7 @@ int color_value(Color color, Color ours) {
     }
 }
 
-double StateDistribution::heuristic_value(Color color) {
+double StateDistribution::heuristic_value(Color color) const {
     double piece_values = 0;
     for (int c = 0; c < 10; c++) {
         const Board& b = random_choice(particles);
@@ -76,7 +93,7 @@ StateDistribution::update_random(Color opponent_color) const {
     std::vector<std::tuple<int, Capture, StateDistribution>> result;
     std::map<Capture, int> indices;
     for (Board b : particles) {
-        Capture capture = b.do_random_move(opponent_color);
+        Capture capture = b.do_random_move(opponent_color).capture;
         if (indices.find(capture) == indices.end()) {
             indices[capture] = result.size();
             result.push_back(std::make_tuple(1, capture, StateDistribution({b})));
@@ -133,8 +150,8 @@ void StateDistribution::handle_move_result(MoveResult move_result, Color our_col
         while (random_float(0, 1) < 0.2) {
             b = mutate_board(b, opponent(our_color));
         }
-        Capture capture = b.apply_move(move_result.move);
-        if (capture == move_result.capture) {
+        MoveResult result = b.apply_move(move_result.move);
+        if (result.capture == move_result.capture) {
             result_particles.push_back(b);
         }
     }
@@ -144,8 +161,8 @@ void StateDistribution::handle_move_result(MoveResult move_result, Color our_col
 Board StateDistribution::mutate_board(Board board, Color color) {
     for (int i = 0; i < 10; i++) {
         Board board_copy = board;
-        Capture capture = board.do_random_move(color);
-        if (capture == Capture::NONE) {
+        MoveResult result = board.do_random_move(color);
+        if (result.capture == Capture::NONE) {
             return board_copy;
         }
     }
@@ -163,6 +180,36 @@ StateDistribution StateDistribution::subsample(size_t num) {
 void StateDistribution::reinitialize(Board board) {
     std::vector<Board> new_particles(kNumParticles, board);
     std::swap(new_particles, particles);
+}
+
+void StateDistribution::entropy(std::array<std::array<double, 8>, 8>& out, Color our_color) const {
+    std::array<std::array<std::array<int, 8>, 8>, 7> piece_counts;
+
+    for (auto& b : piece_counts) {
+        for (auto& r : b) {
+            r.fill(0);
+        }
+    }
+
+    for (const Board& p : particles) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (p.get_piece(i, j).color != our_color) {
+                    int key = static_cast<int>(p.get_piece(i, j).type);
+                    piece_counts[key][i][j]++;
+                }
+            }
+        }
+    }
+
+    for (auto& count : piece_counts) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                double prob = static_cast<double>(count[i][j]) / particles.size();
+                out[i][j] -= prob * std::log2(prob);
+            }
+        }
+    }
 }
 
 double StateDistribution::square_entropy(Position position) const {
@@ -194,8 +241,8 @@ void StateDistribution::handle_opponent_move_result(Capture capture, Color oppon
         while (random_float(0, 1) < 0.2) {
             b = mutate_board(b, opponent_color);
         }
-        Capture c = b.do_random_move(opponent_color);
-        if (c == capture) {
+        MoveResult result = b.do_random_move(opponent_color);
+        if (result.capture == capture) {
             new_particles.push_back(b);
         }
     }
