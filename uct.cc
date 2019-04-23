@@ -54,17 +54,8 @@ double OurUctNode::simulate(int depth) {
 
     UcbEntry& best_entry = find_best_entry();
 
-    double reward = best_entry.value;
-
-    if (reward < 1 - 1e-10) {
-        double sim_reward = best_entry.node->simulate(depth);
-        reward += 0.95 * (1 - reward) * sim_reward;
-    }
-
     count++;
-    best_entry.count++;
-    best_entry.value += (reward - best_entry.value) / best_entry.count;
-    return reward;
+    return best_entry.simulate(depth);
 }
 
 UcbEntry& OurUctNode::find_best_entry() {
@@ -77,34 +68,61 @@ UcbEntry& OurUctNode::find_best_entry() {
         }
     );
 
-    if (!best_entry.node) {
-        best_entry.generate();
-    }
-
     return best_entry;
 }
 
 UcbEntry::UcbEntry(const StateDistribution& state_prior, Move our_move, Color our_color)
         : our_color(our_color),
           our_move(our_move),
-          node(nullptr),
-          state(state_prior),
           count(0) {
-    reward = state.update(our_move);
+    std::vector<std::tuple<int, Move, StateDistribution>> result_dists;
+    std::tie(reward, result_dists) = state_prior.update(our_move, our_color);
 
-    if (reward < 1 - 1e-10) {
-        double h = state.heuristic_value(our_color);
-        reward += h * (1 - reward);
-        count = 2;
+    double reward_heuristic = 0;
+
+    std::vector<double> weights;
+    for (auto& d : result_dists) {
+        children.push_back(std::make_pair(nullptr, std::get<2>(d)));
+        weights.push_back(std::get<0>(d));
+
+        double h = std::get<2>(d).heuristic_value(our_color);
+        reward_heuristic += h * (1 - reward);
     }
 
+    reward += reward_heuristic / kNumParticlesRollout;
+    count = 2;
+
     value = reward;
+
+    child_weights = std::discrete_distribution<int>(weights.begin(), weights.end());
 }
 
-void UcbEntry::generate() {
-    node = std::unique_ptr<OpponentUctNode>(new OpponentUctNode(state, our_color));
-    if (!node) {
-        abort();
+double UcbEntry::simulate(int depth) {
+    double reward = value;
+
+    int idx = child_weights(get_random_engine());
+    auto& node = children[idx];
+    if (node.first == nullptr) {
+        node.first = new OpponentUctNode(node.second, our_color);
+    }
+
+    if (reward < 1 - 1e-10) {
+        double sim_reward = node.first->simulate(depth);
+        reward += 0.95 * (1 - reward) * sim_reward;
+    }
+
+    count++;
+    value += (reward - value) / count;
+    return value;
+}
+
+void UcbEntry::generate() {}
+
+UcbEntry::~UcbEntry() {
+    for (auto& c : children) {
+        if (c.first) {
+            delete c.first;
+        }
     }
 }
 
