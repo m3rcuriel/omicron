@@ -63,10 +63,14 @@ bool handle_obs_piece_no_board(Board &board, Piece obs_piece, Position obs_pos,
         if ((res.at(0).rank + res.at(0).file) % 2 !=
             (obs_pos.rank + obs_pos.file) % 2) {
           ::std::cout << "Looking for single bishop no match" << std::endl;
+          ::std::cout << "obs_pos: " << obs_pos << std::endl;
+          ::std::cout << "res 0: " << res.at(0) << std::endl;
+          ::std::cout << "temp_res size: " << temp_res.size() << std::endl;
+          board.debug_print(std::cout);
           return false;
         }
         selected = res.at(0);
-      } else if (res.size() >= 2) {
+      } else {
         bool match = false;
         for (auto pos : res) {
           if ((pos.rank + pos.file) % 2 == (obs_pos.rank + obs_pos.file) % 2) {
@@ -77,13 +81,14 @@ bool handle_obs_piece_no_board(Board &board, Piece obs_piece, Position obs_pos,
         }
 
         if (!match) {
-          //         std::cout << "BISHOP NO MATCH" << std::endl;
+          std::cout << "BISHOP NO MATCH" << std::endl;
           return false;
         }
       }
       break;
     }
     case PieceType::PAWN: {
+#if 0
       if (res.size() == 0) {
         return false;
       }
@@ -93,29 +98,61 @@ bool handle_obs_piece_no_board(Board &board, Piece obs_piece, Position obs_pos,
           break;
         }
       }
+
+      if (board.get_piece(selected.rank, selected.file) != Piece::EMPTY) {
+        break;
+      }
+#endif
     }
     case PieceType::KNIGHT:
     case PieceType::ROOK:
     case PieceType::QUEEN:
     case PieceType::KING: {
       if (res.size() == 0) {
-        //        ::std::cout << "Couldn't find piece " << obs_piece <<
-        //        std::endl;
-        return false;
+        ::std::cout << "Couldn't find piece " << obs_piece << std::endl;
+        auto valid_pieces =
+            board.find_all_valid_color(obs_piece.color, obs_pos);
+        auto chosen = random_choice(valid_pieces);
+        auto chosen_piece = board.get_piece(chosen.rank, chosen.file);
+        chosen_piece.type = obs_piece.type;
+        board.set_piece(chosen.rank, chosen.file, chosen_piece);
+        selected = chosen;
+        break;
       }
 
       selected = random_choice(res);
       break;
     }
   }
+
+  assert(selected != Position::NONE);
   board.set_piece(obs_pos.rank, obs_pos.file, obs_piece);
   board.set_piece(selected.rank, selected.file, Piece::EMPTY);
 
   return true;
-}  // namespace
+}
 }  // namespace
 
 Board StateDistribution::sample() const { return random_choice(particles); }
+
+int piece_value(PieceType piece) {
+  switch (piece) {
+    case PieceType::PAWN:
+      return 1;
+    case PieceType::KING:
+      return 100;
+    case PieceType::QUEEN:
+      return 20;
+    case PieceType::KNIGHT:
+      return 10;
+    case PieceType::ROOK:
+      return 10;
+    case PieceType::BISHOP:
+      return 10;
+    default:
+      return 0;
+  }
+}
 
 std::tuple<double, std::vector<std::tuple<int, Move, StateDistribution>>>
 StateDistribution::update(Move move, Color our_color) const {
@@ -129,7 +166,7 @@ StateDistribution::update(Move move, Color our_color) const {
     MoveResult move_result = b.apply_move(move);
 
     if (move_result.capture.piece.type == PieceType::KING) {
-      num_wins++;
+      num_wins += 20;
     }
 
     if (indices.find(move_result.move) == indices.end()) {
@@ -153,30 +190,11 @@ StateDistribution::update(Move move, Color our_color) const {
   return std::make_tuple(((double)num_wins) / initial_size, result);
 }
 
-int piece_value(PieceType piece) {
-  switch (piece) {
-    case PieceType::PAWN:
-      return 1;
-    case PieceType::KING:
-      return 100;
-    case PieceType::QUEEN:
-      return 20;
-    case PieceType::KNIGHT:
-      return 10;
-    case PieceType::ROOK:
-      return 10;
-    case PieceType::BISHOP:
-      return 10;
-    default:
-      return 0;
-  }
-}
-
-int color_value(Color color, Color ours) {
+double color_value(Color color, Color ours) {
   if (color == ours) {
     return 1;
   } else if (color == opponent(ours)) {
-    return -1;
+    return -1.0;
   } else {
     return 0;
   }
@@ -255,14 +273,17 @@ void StateDistribution::observe(Observation obs, Color our_color) {
       if (is_valid(b, obs)) {
         result_particles.push_back(b);
       } else {
-#if 0
+        b.debug_print(std::cout);
+        for (int i = 2; i >= 0; --i) {
+          for (int j = 0; j < 3; ++j) {
+            std::cout << obs.obs[i][j] << ", ";
+          }
+          std::cout << ::std::endl;
+        }
         ::std::cout << "is not valid" << std::endl;
-#endif 0
       }
     } else {
-#if 0
       ::std::cout << "could not coerce" << std::endl;
-#endif 0
     }
   }
   std::swap(particles, result_particles);
@@ -290,6 +311,9 @@ void StateDistribution::handle_move_result(Move taken_move, Color our_color,
         b.set_piece(chosen.rank, chosen.file, Piece::EMPTY);
         b.set_piece(captured_position.rank, captured_position.file,
                     chosen_piece);
+      } else if (b.get_piece(captured_position.rank, captured_position.file)
+                     .type == PieceType::KING) {
+        continue;
       }
     } else {
       handle_board_piece_no_obs(
@@ -321,35 +345,37 @@ bool StateDistribution::coerce_board(Board &board, Observation obs,
           if (obs_piece != Piece::EMPTY) {
             if (board_piece == Piece::EMPTY) {
               // the board is missing a piece
+              std::cout << "obs_piece_no_board" << std::endl;
               bool res = handle_obs_piece_no_board(board, obs_piece, obs_pos,
                                                    obs.origin);
               if (!res) {
-                //               std::cout << "obs_piece_no_board" << std::endl;
+                std::cout << "obs_piece_no_board" << std::endl;
                 return false;
               }
             } else {
               // the observation and board mismatch
               bool res = handle_board_piece_no_obs(board, board_piece, obs_pos,
                                                    obs.origin);
+              std::cout << "temp handle_board_piece_no_obs" << std::endl;
               if (!res) {
-                //              std::cout << "temp handle_board_piece_no_obs" <<
-                //              std::endl;
+                std::cout << "temp handle_board_piece_no_obs" << std::endl;
               }
               res &= handle_obs_piece_no_board(board, obs_piece, obs_pos,
                                                obs.origin);
+              std::cout << "temp handle_obs_piece_no_board" << std::endl;
               if (!res) {
-                //               std::cout << "temp handle_obs_piece_no_board"
-                //               << std::endl;
+                std::cout << "temp handle_obs_piece_no_board" << std::endl;
                 return false;
               }
             }
           } else {
             // the observation is empty but we expected something
+            std::cout << "handle_board_piece_no_obs" << std::endl;
+            std::cout << board_piece << " " << obs_pos << std::endl;
             bool res = handle_board_piece_no_obs(board, board_piece, obs_pos,
                                                  obs.origin);
             if (!res) {
-              //              std::cout << "handle_board_piece_no_obs" <<
-              //              std::endl;
+              std::cout << "handle_board_piece_no_obs" << std::endl;
               return false;
             }
           }
