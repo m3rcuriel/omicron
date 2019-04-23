@@ -89,8 +89,11 @@ Move ChessAgent::choose_move(double seconds_left) {
   }
 
   OurUctNode root(particle_filter.subsample(kNumParticlesRollout), our_color);
-  for (int i = 0; i < 100; i++) {
-    root.simulate(kRolloutDepth);
+  double frac_taken = (600 - seconds_left) / 600.0;
+  int rollout_depth = kRolloutDepth * (1 - frac_taken * frac_taken);
+  int num_iters = 1000 * (1 - frac_taken * frac_taken);
+  for (int i = 0; i < num_iters; i++) {
+    root.simulate(rollout_depth);
   }
   return root.find_best_entry().our_move;
 }

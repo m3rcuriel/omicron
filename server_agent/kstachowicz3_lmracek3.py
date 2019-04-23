@@ -19,7 +19,7 @@ from player import Player
 import kstachowicz3_lmracek3_agent_pb2 as agent_pb2
 import kstachowicz3_lmracek3_agent_pb2_grpc as agent_pb2_grpc
 
-SERVER_IP = "omicron.leemracek.com:50051"
+SERVER_IP = "omicron.leemracek.com:80"
 SERVER_IP = os.getenv("SERVER_IP", SERVER_IP)
 """
 The IP for the ServerAgent to connect to. Note that this can be edited above in this file
@@ -271,6 +271,8 @@ class ServerAgent(Player):
         """
         Handles setting up the channel and stub to communicate with the server.
         """
+        self.out_of_time = False
+
         try:
             self._channel = grpc.insecure_channel(SERVER_IP)
             self.stub = agent_pb2_grpc.RemoteAgentStub(self._channel)
@@ -300,6 +302,9 @@ class ServerAgent(Player):
         Transforms the captured_piece bool and value into just an optional value in order to build
         the request.
         """
+        if self.out_of_time:
+            return None
+
         try:
             request = make_handle_opponent_move_request(captured_square if captured_piece else None)
             self.stub.HandleOpponentMove(request)
@@ -312,6 +317,12 @@ class ServerAgent(Player):
 
         This transforms the result of the gRPC call back into a chess.Square.
         """
+        if seconds_left < 1:
+            self.out_of_time = True
+
+        if self.out_of_time:
+            return random.choice(possible_sense)
+
         try:
             request = make_choose_sense_request(possible_sense, possible_moves, seconds_left)
             response = self.stub.ChooseSense(request)
@@ -325,6 +336,9 @@ class ServerAgent(Player):
         """
         Handles the result of the sensing move.
         """
+        if self.out_of_time:
+            return None
+
         try:
             request = make_handle_sense_result_request(sense_result)
             self.stub.HandleSenseResult(request)
@@ -337,6 +351,12 @@ class ServerAgent(Player):
 
         This transforms the result of the gRPC call back into a chess.Move.
         """
+        if seconds_left < 1:
+            self.out_of_time = True
+
+        if self.out_of_time:
+            return random.choice(possible_moves)
+
         try:
             request = make_choose_move_request(possible_moves, seconds_left)
             response = self.stub.ChooseMove(request)
