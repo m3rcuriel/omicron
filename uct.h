@@ -28,7 +28,7 @@ class OurUctNode {
 
   double get_value() const;
 
-  UcbEntry &find_best_entry();
+  UcbEntry &find_best_entry(double uct_constant = kUcbConstant);
 
  private:
   // The state distribution before our move.

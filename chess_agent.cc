@@ -5,17 +5,17 @@ namespace chess {
 namespace agent {
 
 std::vector<std::pair<Move, Piece>> white_starting_moves = {
-    {Move{{1, 4}, {3, 4}}, Piece{Color::WHITE, PieceType::PAWN}},
-    {Move{{0, 5}, {4, 1}}, Piece{Color::WHITE, PieceType::BISHOP}},
-    {Move{{4, 1}, {7, 4}}, Piece{Color::WHITE, PieceType::BISHOP}},
-    {Move{{6, 3}, {7, 4}}, Piece{Color::WHITE, PieceType::BISHOP}},
+    /* {Move{{1, 4}, {3, 4}}, Piece{Color::WHITE, PieceType::PAWN}}, */
+    /* {Move{{0, 5}, {4, 1}}, Piece{Color::WHITE, PieceType::BISHOP}}, */
+    /* {Move{{4, 1}, {7, 4}}, Piece{Color::WHITE, PieceType::BISHOP}}, */
+    /* {Move{{6, 3}, {7, 4}}, Piece{Color::WHITE, PieceType::BISHOP}}, */
 };
 
 std::vector<std::pair<Move, Piece>> black_starting_moves = {
-    {Move{{6, 4}, {4, 4}}, Piece{Color::BLACK, PieceType::PAWN}},
-    {Move{{7, 5}, {3, 1}}, Piece{Color::BLACK, PieceType::BISHOP}},
-    {Move{{3, 1}, {0, 4}}, Piece{Color::BLACK, PieceType::BISHOP}},
-    {Move{{1, 3}, {0, 4}}, Piece{Color::BLACK, PieceType::BISHOP}},
+    /* {Move{{6, 4}, {4, 4}}, Piece{Color::BLACK, PieceType::PAWN}}, */
+    /* {Move{{7, 5}, {3, 1}}, Piece{Color::BLACK, PieceType::BISHOP}}, */
+    /* {Move{{3, 1}, {0, 4}}, Piece{Color::BLACK, PieceType::BISHOP}}, */
+    /* {Move{{1, 3}, {0, 4}}, Piece{Color::BLACK, PieceType::BISHOP}}, */
 };
 
 ChessAgent::ChessAgent()
@@ -36,6 +36,10 @@ void ChessAgent::handle_opponent_move_result(bool captured_piece,
 Position ChessAgent::choose_sense(std::vector<Position> possible_sense,
                                   std::vector<Move> possible_moves,
                                   double seconds_left) {
+  if (our_color == Color::WHITE && opening_state == 0) {
+    return {3, 3};
+  }
+
   std::array<std::array<double, 8>, 8> entropies;
   for (auto &r : entropies) {
     r.fill(0);
@@ -66,6 +70,9 @@ Position ChessAgent::choose_sense(std::vector<Position> possible_sense,
 }
 
 void ChessAgent::handle_sense_result(Observation sense_result) {
+  if (our_color == Color::WHITE && opening_state == 0) {
+    return;
+  }
   particle_filter.observe(sense_result, our_color);
 }
 
@@ -90,13 +97,16 @@ Move ChessAgent::choose_move(double seconds_left) {
   OurUctNode root(particle_filter.subsample(kNumParticlesRollout), our_color);
   double frac_taken = (600 - seconds_left) / 600.0;
   int rollout_depth = kRolloutDepth * (1 - frac_taken * frac_taken);
-  int num_iters = 1000 * (1 - frac_taken * frac_taken);
+  int num_iters = 500 * (1 - frac_taken * frac_taken);
   ::std::cout << "Number of iterations: " << num_iters << ::std::endl;
   ::std::cout << "Rollout: " << rollout_depth << ::std::endl;
   for (int i = 0; i < num_iters; i++) {
+    if (i % 100 == 0) {
+        ::std::cout << "Iteration: " << i << std::endl;
+    }
     root.simulate(rollout_depth);
   }
-  return root.find_best_entry().our_move;
+  return root.find_best_entry(0).our_move;
 }
 
 void ChessAgent::handle_move_result(Move taken_move, bool capture,

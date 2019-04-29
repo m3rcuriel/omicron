@@ -35,17 +35,17 @@ OurUctNode::OurUctNode(StateDistribution state, Color color)
   // TODO(Kyle): Assert that all boards have the same moves for us.
 }
 
-double calculate_ucb(double value, double n, double N) {
+double calculate_ucb(double value, double n, double N, double ucb_constant) {
   if (n == 0) {
     return std::numeric_limits<double>::infinity();
   }
-  return value + kUcbConstant * std::sqrt(std::log(N) / n);
+  return value + ucb_constant * std::sqrt(std::log(N) / n);
 }
 
 void OurUctNode::print_moves() {
   for (UcbEntry &entry : ucb_table) {
     std::cout << entry.our_move << " with value " << entry.value << " and UCB "
-              << calculate_ucb(entry.value, entry.count, count) << std::endl;
+              << calculate_ucb(entry.value, entry.count, count, kUcbConstant) << std::endl;
   }
 }
 
@@ -60,13 +60,13 @@ double OurUctNode::simulate(int depth) {
   return best_entry.simulate(depth);
 }
 
-UcbEntry &OurUctNode::find_best_entry() {
+UcbEntry &OurUctNode::find_best_entry(double ucb_constant) {
   // Find the largest UCB entry, by UCB.
   UcbEntry &best_entry =
       *std::max_element(ucb_table.begin(), ucb_table.end(),
                         [&](const UcbEntry &a, const UcbEntry &b) {
-                          return calculate_ucb(a.value, a.count, count) <
-                                 calculate_ucb(b.value, b.count, count);
+                          return calculate_ucb(a.value, a.count, count, ucb_constant) <
+                                 calculate_ucb(b.value, b.count, count, ucb_constant);
                         });
 
   return best_entry;
