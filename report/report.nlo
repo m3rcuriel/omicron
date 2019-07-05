@@ -1,0 +1,8 @@
+\nomenclatureentry{aPOMDP@[{POMDP}]\begingroup Partially Observable Markov Decision Process\nomeqref {0}|nompageref}{1}
+\nomenclatureentry{aRMBC@[{RMBC}]\begingroup Recon Blind Multi-Chess\nomeqref {0}|nompageref}{1}
+\nomenclatureentry{a$O$@[{$O$}]\begingroup The set of all $3 \times 3$ observation locations on the chessboard\nomeqref {0}|nompageref}{1}
+\nomenclatureentry{a$R_o$@[{$R_o$}]\begingroup The set of possible observations for a particular observation location\nomeqref {0}|nompageref}{1}
+\nomenclatureentry{aDNN@[{DNN}]\begingroup Deep Neural Network\nomeqref {0}|nompageref}{1}
+\nomenclatureentry{aMCTS@[{MCTS}]\begingroup Monte-Carlo Tree Search, a randomized algorithm designed to compute solutions to MDPs\nomeqref {0}|nompageref}{1}
+\nomenclatureentry{aUCT@[{UCT}]\begingroup An improvement upon MCTS that biases search by the Upper Confidence Bound (some fixed percentile) of each node's score\nomeqref {0}|nompageref}{1}
+\nomenclatureentry{aPOMCP@[{POMCP}]\begingroup Partially Observable Monte-Carlo Planning\nomeqref {0}|nompageref}{1}

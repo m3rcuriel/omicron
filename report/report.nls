@@ -1,0 +1,22 @@
+\begin{thenomenclature} 
+
+ \nomgroup{A}
+
+  \item [{$O$}]\begingroup The set of all $3 \times 3$ observation locations on the chessboard\nomeqref {0}
+		\nompageref{1}
+  \item [{$R_o$}]\begingroup The set of possible observations for a particular observation location\nomeqref {0}
+		\nompageref{1}
+  \item [{DNN}]\begingroup Deep Neural Network\nomeqref {0}
+		\nompageref{1}
+  \item [{MCTS}]\begingroup Monte-Carlo Tree Search, a randomized algorithm designed to compute solutions to MDPs\nomeqref {0}
+		\nompageref{1}
+  \item [{POMCP}]\begingroup Partially Observable Monte-Carlo Planning\nomeqref {0}
+		\nompageref{1}
+  \item [{POMDP}]\begingroup Partially Observable Markov Decision Process\nomeqref {0}
+		\nompageref{1}
+  \item [{RMBC}]\begingroup Recon Blind Multi-Chess\nomeqref {0}
+		\nompageref{1}
+  \item [{UCT}]\begingroup An improvement upon MCTS that biases search by the Upper Confidence Bound (some fixed percentile) of each node's score\nomeqref {0}
+		\nompageref{1}
+
+\end{thenomenclature}

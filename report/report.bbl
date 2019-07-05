@@ -1,0 +1,248 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 2.9 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{apa/global//global/global}
+    \entry{UCT}{article}{}
+      \name{author}{2}{}{%
+        {{uniquename=0,uniquepart=base,hash=8f1295dae474227807ad36ce0812614a}{%
+           family={Coquelin},
+           familyi={C\bibinitperiod},
+           given={Pierre-Arnaud},
+           giveni={P\bibinithyphendelim A\bibinitperiod},
+           givenun=0}}%
+        {{uniquename=0,uniquepart=base,hash=ce2c8d8bf1e96e9845a930fb6264204f}{%
+           family={Munos},
+           familyi={M\bibinitperiod},
+           given={Remi},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{b89b0051e7decef242285816e7f9e453}
+      \strng{fullhash}{b89b0051e7decef242285816e7f9e453}
+      \strng{bibnamehash}{b89b0051e7decef242285816e7f9e453}
+      \strng{authorbibnamehash}{b89b0051e7decef242285816e7f9e453}
+      \strng{authornamehash}{b89b0051e7decef242285816e7f9e453}
+      \strng{authorfullhash}{b89b0051e7decef242285816e7f9e453}
+      \field{sortinit}{C}
+      \field{sortinithash}{963e9d84a3da2344e8833203de5aed05}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Bandit Algorithms for Tree Search}
+      \field{year}{2007}
+      \verb{urlraw}
+      \verb https://arxiv.org/pdf/1408.2028.pdf
+      \endverb
+      \verb{url}
+      \verb https://arxiv.org/pdf/1408.2028.pdf
+      \endverb
+    \endentry
+    \entry{RBMC}{article}{}
+      \name{author}{7}{}{%
+        {{uniquename=0,uniquepart=base,hash=bda85b2d26c917a0d4bfa4c0f4058efd}{%
+           family={Newman},
+           familyi={N\bibinitperiod},
+           given={Andrew\bibnamedelima J.},
+           giveni={A\bibinitperiod\bibinitdelim J\bibinitperiod},
+           givenun=0}}%
+        {{uniquename=0,uniquepart=base,hash=8074a54b11564e98d70487bc1eb9cc58}{%
+           family={Richardson},
+           familyi={R\bibinitperiod},
+           given={Casey\bibnamedelima L.},
+           giveni={C\bibinitperiod\bibinitdelim L\bibinitperiod},
+           givenun=0}}%
+        {{uniquename=0,uniquepart=base,hash=19b09fc5b120a6e83de6f79ce4095e99}{%
+           family={Kain},
+           familyi={K\bibinitperiod},
+           given={Sean\bibnamedelima M.},
+           giveni={S\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+        {{uniquename=0,uniquepart=base,hash=38b3b007f87d9473da676824e4c2f5cb}{%
+           family={Stankiewicz},
+           familyi={S\bibinitperiod},
+           given={Paul\bibnamedelima G.},
+           giveni={P\bibinitperiod\bibinitdelim G\bibinitperiod},
+           givenun=0}}%
+        {{uniquename=0,uniquepart=base,hash=c90374c3f116c7a8eca6b3631666b5b5}{%
+           family={Guseman},
+           familyi={G\bibinitperiod},
+           given={Paul\bibnamedelima R.},
+           giveni={P\bibinitperiod\bibinitdelim R\bibinitperiod},
+           givenun=0}}%
+        {{uniquename=0,uniquepart=base,hash=0d1d2d8240ebf6eb6ef3ba4366903b64}{%
+           family={Schreurs},
+           familyi={S\bibinitperiod},
+           given={Blake\bibnamedelima A.},
+           giveni={B\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+        {{uniquename=0,uniquepart=base,hash=f44c75e457fdd13cebf88f2a9ca3edd2}{%
+           family={Dunne},
+           familyi={D\bibinitperiod},
+           given={Jeffrey\bibnamedelima A.},
+           giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{e7599caca65e2139ff05db687e43dd12}
+      \strng{fullhash}{f784b054d8594ef08ab61b6b968a064b}
+      \strng{bibnamehash}{f784b054d8594ef08ab61b6b968a064b}
+      \strng{authorbibnamehash}{f784b054d8594ef08ab61b6b968a064b}
+      \strng{authornamehash}{e7599caca65e2139ff05db687e43dd12}
+      \strng{authorfullhash}{f784b054d8594ef08ab61b6b968a064b}
+      \field{sortinit}{N}
+      \field{sortinithash}{f7242c3ed3dc50029fca1be76c497c7c}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Reconnaissance blind multi-chess: an experimentation platform for ISR sensor fusion and resource management}
+      \field{volume}{9842}
+      \field{year}{2016}
+      \verb{doi}
+      \verb 10.1117/12.2228127
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1117/12.2228127
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1117/12.2228127
+      \endverb
+    \endentry
+    \entry{Shannon}{article}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,uniquepart=base,hash=cea611271dfb4b16522bf8178e289090}{%
+           family={Shannon},
+           familyi={S\bibinitperiod},
+           given={C.\bibnamedelimi E.},
+           giveni={C\bibinitperiod\bibinitdelim E\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{cea611271dfb4b16522bf8178e289090}
+      \strng{fullhash}{cea611271dfb4b16522bf8178e289090}
+      \strng{bibnamehash}{cea611271dfb4b16522bf8178e289090}
+      \strng{authorbibnamehash}{cea611271dfb4b16522bf8178e289090}
+      \strng{authornamehash}{cea611271dfb4b16522bf8178e289090}
+      \strng{authorfullhash}{cea611271dfb4b16522bf8178e289090}
+      \field{sortinit}{S}
+      \field{sortinithash}{322b1d5276f2f6c1bccdcd15920dbee6}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Bell System Technical Journal}
+      \field{number}{3}
+      \field{title}{A Mathematical Theory of Communication}
+      \field{volume}{27}
+      \field{year}{1948}
+      \field{pages}{379\bibrangedash 423}
+      \range{pages}{45}
+      \verb{doi}
+      \verb 10.1002/j.1538-7305.1948.tb01338.x
+      \endverb
+      \verb{eprint}
+      \verb https://onlinelibrary.wiley.com/doi/pdf/10.1002/j.1538-7305.1948.tb01338.x
+      \endverb
+      \verb{urlraw}
+      \verb https://onlinelibrary.wiley.com/doi/abs/10.1002/j.1538-7305.1948.tb01338.x
+      \endverb
+      \verb{url}
+      \verb https://onlinelibrary.wiley.com/doi/abs/10.1002/j.1538-7305.1948.tb01338.x
+      \endverb
+    \endentry
+    \entry{NIPS2010_4031}{incollection}{}
+      \name{author}{2}{}{%
+        {{uniquename=0,uniquepart=base,hash=89dbd30410c2085cd059f32c57d4593e}{%
+           family={Silver},
+           familyi={S\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{uniquename=0,uniquepart=base,hash=1cbd91f7404b2298b46bb46c47c08251}{%
+           family={Veness},
+           familyi={V\bibinitperiod},
+           given={Joel},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+      }
+      \name{editor}{5}{}{%
+        {{hash=4eaa9c06d856b0d50052a73dd7338e5e}{%
+           family={Lafferty},
+           familyi={L\bibinitperiod},
+           given={J.\bibnamedelimi D.},
+           giveni={J\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=31c7ad1851eccd0f6945cfeb1837db74}{%
+           family={Williams},
+           familyi={W\bibinitperiod},
+           given={C.\bibnamedelimi K.\bibnamedelimi I.},
+           giveni={C\bibinitperiod\bibinitdelim K\bibinitperiod\bibinitdelim I\bibinitperiod}}}%
+        {{hash=41c35739cccb06bf15bdcfa8fee0065c}{%
+           family={Shawe-Taylor},
+           familyi={S\bibinithyphendelim T\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod}}}%
+        {{hash=4c5b7c9f0ec906d57573489cf44eae04}{%
+           family={Zemel},
+           familyi={Z\bibinitperiod},
+           given={R.\bibnamedelimi S.},
+           giveni={R\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=d695dacead594c2681842b89314c685a}{%
+           family={Culotta},
+           familyi={C\bibinitperiod},
+           given={A.},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Curran Associates, Inc.}%
+      }
+      \strng{namehash}{fd3f13f58ce542f01290f15c192be75a}
+      \strng{fullhash}{fd3f13f58ce542f01290f15c192be75a}
+      \strng{bibnamehash}{fd3f13f58ce542f01290f15c192be75a}
+      \strng{authorbibnamehash}{fd3f13f58ce542f01290f15c192be75a}
+      \strng{authornamehash}{fd3f13f58ce542f01290f15c192be75a}
+      \strng{authorfullhash}{fd3f13f58ce542f01290f15c192be75a}
+      \strng{editorbibnamehash}{87fc6f3830760da0ed18d5ee5dd78de3}
+      \strng{editornamehash}{c740499e054d2184a95e6e46ffa02339}
+      \strng{editorfullhash}{87fc6f3830760da0ed18d5ee5dd78de3}
+      \field{sortinit}{S}
+      \field{sortinithash}{322b1d5276f2f6c1bccdcd15920dbee6}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Advances in Neural Information Processing Systems 23}
+      \field{title}{Monte-Carlo Planning in Large POMDPs}
+      \field{year}{2010}
+      \field{pages}{2164\bibrangedash 2172}
+      \range{pages}{9}
+      \verb{urlraw}
+      \verb http://papers.nips.cc/paper/4031-monte-carlo-planning-in-large-pomdps.pdf
+      \endverb
+      \verb{url}
+      \verb http://papers.nips.cc/paper/4031-monte-carlo-planning-in-large-pomdps.pdf
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

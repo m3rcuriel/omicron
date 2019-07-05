@@ -5,14 +5,14 @@ namespace chess {
 namespace agent {
 
 std::vector<std::pair<Move, Piece>> white_starting_moves = {
-    /* {Move{{1, 4}, {3, 4}}, Piece{Color::WHITE, PieceType::PAWN}}, */
+    {Move{{1, 3}, {3, 3}}, Piece{Color::WHITE, PieceType::PAWN}},
     /* {Move{{0, 5}, {4, 1}}, Piece{Color::WHITE, PieceType::BISHOP}}, */
     /* {Move{{4, 1}, {7, 4}}, Piece{Color::WHITE, PieceType::BISHOP}}, */
     /* {Move{{6, 3}, {7, 4}}, Piece{Color::WHITE, PieceType::BISHOP}}, */
 };
 
 std::vector<std::pair<Move, Piece>> black_starting_moves = {
-    /* {Move{{6, 4}, {4, 4}}, Piece{Color::BLACK, PieceType::PAWN}}, */
+    {Move{{6, 3}, {4, 3}}, Piece{Color::BLACK, PieceType::PAWN}},
     /* {Move{{7, 5}, {3, 1}}, Piece{Color::BLACK, PieceType::BISHOP}}, */
     /* {Move{{3, 1}, {0, 4}}, Piece{Color::BLACK, PieceType::BISHOP}}, */
     /* {Move{{1, 3}, {0, 4}}, Piece{Color::BLACK, PieceType::BISHOP}}, */
@@ -106,6 +106,7 @@ Move ChessAgent::choose_move(double seconds_left) {
     }
     root.simulate(rollout_depth);
   }
+  ::std::cout << "Iteration done." << std::endl;
   return root.find_best_entry(0).our_move;
 }
 
